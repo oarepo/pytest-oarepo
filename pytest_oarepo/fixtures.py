@@ -10,12 +10,7 @@ def create_app(instance_path, entry_points):
     return create_api
 
 
-@pytest.fixture(scope="module", autouse=True)
-def location(location):
-    return location
-
-
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def vocab_cf(app, db, cache):
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 

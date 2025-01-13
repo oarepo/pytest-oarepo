@@ -21,7 +21,7 @@ def community_records_service():
     return current_oarepo_communities.community_records_service
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def init_cf(app, db, cache):
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
