@@ -5,11 +5,6 @@
 # modify it under the terms of the MIT License; see LICENSE file for more
 # details.
 #
-import copy
-import os
-from io import BytesIO
-from typing import Dict
-from invenio_records_resources.references.entity_resolvers import ServiceResultResolver
 import pytest
 from deepmerge import always_merger
 from invenio_accounts.proxies import current_datastore
@@ -31,6 +26,7 @@ can_comment_only_receiver = [
     SystemProcess(),
 ]
 
+
 @pytest.fixture(scope="module")
 def requests_service(app):
 
@@ -41,7 +37,6 @@ def requests_service(app):
 def request_events_service(app):
     service = current_requests.request_events_service
     return service
-
 
 
 @pytest.fixture()
@@ -62,6 +57,7 @@ def _create_role(id, name, description, is_managed, database):
     )
     current_datastore.commit()
     return r
+
 
 @pytest.fixture()
 def role(database):
@@ -88,6 +84,7 @@ def role_ui_serialization():
         "type": "group",
     }
 
+
 @pytest.fixture()
 def get_request_type():
     """
@@ -95,7 +92,9 @@ def get_request_type():
     """
 
     def _get_request_type(request_types_json, request_type):
-        selected_entry = [entry for entry in request_types_json if entry["type_id"] == request_type]
+        selected_entry = [
+            entry for entry in request_types_json if entry["type_id"] == request_type
+        ]
         if not selected_entry:
             return None
         return selected_entry[0]

@@ -1,6 +1,6 @@
 import pytest
-from invenio_accounts.testutils import login_user_via_session
 from flask_security import login_user
+from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 
 
@@ -9,15 +9,18 @@ def create_app(instance_path, entry_points):
     """Application factory fixture."""
     return create_api
 
+
 @pytest.fixture(scope="module", autouse=True)
 def location(location):
     return location
+
 
 @pytest.fixture(autouse=True)
 def vocab_cf(app, db, cache):
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
     prepare_cf_indices()
+
 
 # todo - ask whether to use as fixture or function
 """
@@ -28,6 +31,7 @@ def link2testclient():
         return link[len(base_string) - 1 :]
     return _link2testclient
 """
+
 
 class LoggedClient:
     def __init__(self, client, user_fixture):

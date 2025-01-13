@@ -1,65 +1,25 @@
 import copy
-import os
-import time
 
-from thesis.proxies import current_service
 import pytest
-import yaml
-from flask_security import login_user
 from invenio_access.permissions import system_identity
-from invenio_accounts.testutils import login_user_via_session
-from invenio_app.factory import create_api
 from invenio_communities.cli import create_communities_custom_field
 from invenio_communities.communities.records.api import Community
 from invenio_communities.generators import CommunityRoleNeed
 from invenio_communities.proxies import current_communities
-from invenio_i18n import lazy_gettext as _
 from invenio_pidstore.errors import PIDDoesNotExistError
-from invenio_records_permissions.generators import (
-    AnyUser,
-    AuthenticatedUser,
-    SystemProcess,
-)
-from oarepo_requests.receiver import default_workflow_receiver_function
-from oarepo_requests.services.permissions.generators import RequestActive
-from oarepo_requests.services.permissions.workflow_policies import (
-    CreatorsFromWorkflowRequestsPermissionPolicy,
-)
-from oarepo_runtime.services.permissions import RecordOwners
-from oarepo_workflows import (
-    AutoApprove,
-    IfInState,
-    Workflow,
-    WorkflowRequest,
-    WorkflowRequestPolicy,
-    WorkflowTransitions,
-)
-from thesis.records.api import ThesisDraft
-
-from oarepo_communities.proxies import current_oarepo_communities
-from oarepo_communities.services.custom_fields.workflow import WorkflowCF
-from oarepo_communities.services.permissions.generators import (
-    CommunityMembers,
-    CommunityRole,
-    DefaultCommunityRole,
-    RecordOwnerInDefaultRecordCommunity,
-    RecordOwnerInRecordCommunity,
-    TargetCommunityRole,
-)
-from oarepo_communities.services.permissions.policy import (
-    CommunityDefaultWorkflowPermissions,
-)
-from tests.test_communities.utils import link2testclient
-from deepmerge import always_merger
 from invenio_users_resources.proxies import current_users_service
+from oarepo_communities.proxies import current_oarepo_communities
+
 
 @pytest.fixture()
 def community_inclusion_service():
     return current_oarepo_communities.community_inclusion_service
 
+
 @pytest.fixture()
 def community_records_service():
     return current_oarepo_communities.community_records_service
+
 
 @pytest.fixture(autouse=True)
 def init_cf(app, db, cache):
@@ -70,6 +30,7 @@ def init_cf(app, db, cache):
     assert result.exit_code == 0
     Community.index.refresh()
 
+
 @pytest.fixture()
 def index_users():
     """Index users for an up-to-date user service."""
@@ -79,6 +40,7 @@ def index_users():
         current_users_service.record_cls.index.refresh()
 
     return _index
+
 
 @pytest.fixture()
 def inviter(index_users):
@@ -120,6 +82,7 @@ def remover():
 
     return remove
 
+
 @pytest.fixture
 def set_community_workflow():
     def _set_community_workflow(community_id, workflow="default"):
@@ -131,6 +94,7 @@ def set_community_workflow():
         )
 
     return _set_community_workflow
+
 
 @pytest.fixture(scope="module")
 def minimal_community():
@@ -145,6 +109,7 @@ def minimal_community():
             "title": "My Community",
         },
     }
+
 
 def _community_get_or_create(identity, community_dict, workflow=None):
     """Util to get or create community, to avoid duplicate error."""
@@ -189,6 +154,7 @@ def communities(app, minimal_community, community_owner):
         ),
     }
 
+
 @pytest.fixture()
 def community_owner(UserFixture, app, db):
     u = UserFixture(
@@ -197,6 +163,7 @@ def community_owner(UserFixture, app, db):
     )
     u.create(app, db)
     return u
+
 
 @pytest.fixture()
 def community_with_workflow_factory(minimal_community, set_community_workflow):

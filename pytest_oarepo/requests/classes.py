@@ -3,8 +3,10 @@ from invenio_records_permissions.generators import Generator
 from invenio_requests.customizations import CommentEventType
 from oarepo_workflows.requests.generators import RecipientGeneratorMixin
 
+
 class TestEventType(CommentEventType):
     type_id = "test"
+
 
 class UserGenerator(RecipientGeneratorMixin, Generator):
     def __init__(self, user_id):
