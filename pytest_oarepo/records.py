@@ -102,7 +102,7 @@ def draft_factory(draft_factory_record_object, urls):
             additional_data=additional_data,
             **service_kwargs,
         )
-        url = f"{urls['BASE_URL']}{draft['id']}/draft"
+        url = f"{urls['BASE_URL']}{draft['id']}/draft" # todo repeated code + it would probably make more sense to use service outputs as defaults - requires rewriting tests in requests and communities
         if expand:
             url += "?expand=true"
         return client.get(url)
@@ -126,7 +126,7 @@ def record_factory(
 
 
 @pytest.fixture()
-def upload_file(record_service):
+def upload_file():
     def _upload_file(files_service, identity, record_id):
         # upload file
         # Initialize files upload

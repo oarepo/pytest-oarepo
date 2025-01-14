@@ -62,7 +62,7 @@ def inviter(index_users):
             system_identity, community_id, invitation_data
         )
         index_users()
-        user_fixture._identity = None
+        user_fixture._identity = None # otherwise inviting user to more than one community doesn't actualize identity
 
     return invite
 

@@ -16,18 +16,6 @@ def vocab_cf(app, db, cache):
 
     prepare_cf_indices()
 
-
-# todo - ask whether to use as fixture or function
-"""
-@pytest.fixture()
-def link2testclient():
-    def _link2testclient(link, ui=False):
-        base_string = "https://127.0.0.1:5000/api/" if not ui else "https://127.0.0.1:5000/"
-        return link[len(base_string) - 1 :]
-    return _link2testclient
-"""
-
-
 class LoggedClient:
     def __init__(self, client, user_fixture):
         self.client = client
