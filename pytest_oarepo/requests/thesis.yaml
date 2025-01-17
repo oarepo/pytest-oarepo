@@ -1,0 +1,40 @@
+record:
+  use:
+  - invenio
+  module:
+    qualified: thesis
+
+  properties:
+    metadata:
+      properties:
+        title:
+          type: fulltext
+          required: true
+        creators[]:
+          type: keyword
+        contributors[]:
+          type: keyword
+
+  files:
+    properties:
+      metadata:
+        properties:
+          title:
+            type: fulltext
+
+    use:
+      - invenio_files
+
+  draft: {}
+
+  draft-files: {}
+
+settings:
+  schema-server: 'local://'
+profiles:
+- record
+- draft
+- files
+- draft_files
+
+

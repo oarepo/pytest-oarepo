@@ -9,6 +9,9 @@ def create_app(instance_path, entry_points):
     """Application factory fixture."""
     return create_api
 
+@pytest.fixture()
+def host():
+    return "https://127.0.0.1:5000/" #overwritable in application
 
 @pytest.fixture()
 def vocab_cf(app, db, cache):

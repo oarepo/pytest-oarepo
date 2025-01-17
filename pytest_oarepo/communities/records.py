@@ -1,10 +1,11 @@
 import pytest
 from invenio_access.permissions import system_identity
+from pytest_oarepo.functions import _merge_record_data
 
 
 @pytest.fixture()
 def draft_with_community_factory(
-    community_records_service, merge_record_data, base_model_schema, urls
+    community_records_service, base_model_schema, urls
 ):
     def record(
         client,
@@ -20,7 +21,7 @@ def draft_with_community_factory(
             additional_data["$schema"] = (
                 base_model_schema if not model_schema else model_schema
             )
-        json = merge_record_data(
+        json = _merge_record_data(
             custom_workflow, additional_data, add_default_workflow=False
         )
         draft = community_records_service.create(
@@ -29,10 +30,7 @@ def draft_with_community_factory(
             community_id=community_id,
             **service_kwargs,
         )
-        url = f"{urls['BASE_URL']}{draft['id']}/draft"
-        if expand:
-            url += "?expand=true"
-        return client.get(url)
+        return draft.to_dict()
 
     return record
 
@@ -51,10 +49,7 @@ def published_record_with_community_factory(
             custom_workflow=custom_workflow,
             additional_data=additional_data,
         )
-        record_item = record_service.publish(system_identity, draft.json["id"])
-        url = f"/thesis/{record_item['id']}"
-        if expand:
-            url += "?expand=true"
-        return client.get(url)
+        record = record_service.publish(system_identity, draft["id"], expand=expand)
+        return record.to_dict()
 
     return _published_record_with_community

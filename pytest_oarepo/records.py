@@ -1,4 +1,5 @@
 import copy
+from collections import namedtuple
 from io import BytesIO
 
 import pytest
@@ -7,84 +8,58 @@ from invenio_access.permissions import system_identity
 
 
 @pytest.fixture()
-def default_record_with_workflow_json():
-    return {
-        "metadata": {
-            "creators": [
-                "Creator 1",
-                "Creator 2",
-            ],
-            "contributors": ["Contributor 1"],
-            "title": "blabla",
-        },
-        "files": {"enabled": False},
-    }
-
-
-@pytest.fixture()
-def default_record_with_workflow_parent_json():
-    return {
-        "metadata": {
-            "creators": [
-                "Creator 1",
-                "Creator 2",
-            ],
-            "contributors": ["Contributor 1"],
-            "title": "blabla",
-        },
-        "files": {"enabled": False},
-        "parent": {"workflow": "default"},
-    }
-
-
-@pytest.fixture()
-def merge_record_data(default_record_with_workflow_json):
-    def _merge_data(
-        custom_workflow=None, additional_data=None, add_default_workflow=True
-    ):
-        json = copy.deepcopy(default_record_with_workflow_json)
-        if add_default_workflow:
-            always_merger.merge(json, {"parent": {"workflow": "default"}})
-        if custom_workflow:  # specifying this assumes use of workflows
-            json.setdefault("parent", {})["workflow"] = custom_workflow
-        if additional_data:
-            always_merger.merge(json, additional_data)
-
-        return json
-
-    return _merge_data
-
-
-@pytest.fixture()
-def draft_factory_record_object(record_service, merge_record_data):
-    def record(
+def draft_factory(record_service, _merge_record_data):
+    """
+    Call to instance a draft.
+    """
+    def draft(
         client,
-        *service_args,
         custom_workflow=None,
         additional_data=None,
+        expand=None,
         **service_kwargs,
     ):
-        json = merge_record_data(custom_workflow, additional_data)
+        """
+        Create instance of a draft.
+        :param client: Client instance.
+        :param custom_workflow: If user wants to use different workflow that the default one.
+        :param additional_data: Additional data beyond the defaults that should be put into the service.
+        :param expand: Expand the response.
+        """
+        json = _merge_record_data(custom_workflow, additional_data)
         draft = record_service.create(
-            client.user_fixture.identity, json, *service_args, **service_kwargs
+            identity=client.user_fixture.identity, data=json, expand=expand, **service_kwargs
         )
-        return draft._obj
+        return draft.to_dict() # unified interface
 
-    return record
+    return draft
 
 
 @pytest.fixture()
-def record_factory_record_object(record_service, draft_factory_record_object, urls):
+def record_factory(record_service, draft_factory):
     # bypassing request pattern with system identity
-    def record(client, custom_workflow=None, additional_data=None):
-        draft = draft_factory_record_object(
-            client, custom_workflow=custom_workflow, additional_data=additional_data
+    def record(
+        client,
+        custom_workflow=None,
+        additional_data=None,
+        expand=None,
+        **service_kwargs):
+        """
+        Create instance of a draft.
+        :param client: Client instance.
+        :param custom_workflow: If user wants to use different workflow that the default one.
+        :param additional_data: Additional data beyond the defaults that should be put into the service.
+        :param expand: Expand the response.
+        """
+        draft = draft_factory(
+            client, additional_data=additional_data, custom_workflow=custom_workflow, expand=expand, **service_kwargs
         )
-        return record_service.publish(system_identity, draft["id"])._obj
+        record = record_service.publish(system_identity, draft.json["id"])
+        return record.to_dict() # unified interface
 
     return record
 
-
+"""
 @pytest.fixture()
 def draft_factory(draft_factory_record_object, urls):
     def _create_draft(
@@ -110,6 +85,7 @@ def draft_factory(draft_factory_record_object, urls):
     return _create_draft
 
 
+
 @pytest.fixture()
 def record_factory(
     record_service, draft_factory_record_object, urls, record_factory_record_object
@@ -123,13 +99,17 @@ def record_factory(
         return client.get(url)
 
     return record
+"""
 
 
 @pytest.fixture()
 def upload_file():
-    def _upload_file(files_service, identity, record_id):
-        # upload file
-        # Initialize files upload
+    def _upload_file(identity, record_id, files_service):
+        """
+        Uploads a default file to a record.
+        :param identity: Identity of the requester.
+        :param record_id: Id of the record to be uploaded on.
+        """
         init = files_service.init_files(
             identity,
             record_id,
@@ -150,11 +130,18 @@ def upload_file():
 def record_with_files_factory(
     record_service,
     upload_file,
-    draft_factory_record_object,
+    draft_factory,
     default_record_with_workflow_json,
     urls,
 ):
-    def record(client, custom_workflow=None, additional_data=None):
+    def record(client, custom_workflow=None, additional_data=None, expand=None):
+        """
+        Create instance of a published record with the default file.
+        :param client: Client instance.
+        :param custom_workflow: If user wants to use different workflow that the default one.
+        :param additional_data: Additional data beyond the defaults that should be put into the service.
+        :param expand: Expand the response.
+        """
         identity = client.user_fixture.identity
         if (
             "files" in default_record_with_workflow_json
@@ -163,15 +150,12 @@ def record_with_files_factory(
             if not additional_data:
                 additional_data = {}
             additional_data.setdefault("files", {}).setdefault("enabled", True)
-        draft = draft_factory_record_object(
+        draft = draft_factory(
             client, custom_workflow=custom_workflow, additional_data=additional_data
         )
-
         files_service = record_service._draft_files
-        upload_file(files_service, identity, draft["id"])
-        # publish record
-        record = record_service.publish(system_identity, draft["id"])
-        ret = client.get(f"{urls['BASE_URL']}{record['id']}")  # unified return value
-        return ret
+        upload_file(identity, draft["id"], files_service)
+        record = record_service.publish(system_identity, draft["id"], expand=expand)
+        return record.to_dict()
 
     return record

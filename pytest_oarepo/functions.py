@@ -1,15 +1,17 @@
+import copy
 from collections import defaultdict
+from deepmerge import always_merger
 
-# todo - it's kind of ugly to request each time we need things like this but can't be called with autouse
-# the question - if there is a reason to separate using functions as fixtures and the standard way - what it is?
-# and how to determine where to use what?
-def link2testclient(link, ui=False):
-    base_string = "https://127.0.0.1:5000/api/" if not ui else "https://127.0.0.1:5000/"
+from pytest_oarepo.constants import DEFAULT_RECORD_JSON
+
+
+def link2testclient(link, ui=False, host="https://127.0.0.1:5000/"):
+    base_string = f"{host}api/" if not ui else host
     return link[len(base_string) - 1 :]
 
 
 # from chatgpt
-def dict_diff(dict1, dict2, path=""):
+def _dict_diff(dict1, dict2, path=""):
     ret = defaultdict(list)
     for key in dict1:
         # Construct path to current element
@@ -27,7 +29,7 @@ def dict_diff(dict1, dict2, path=""):
 
         # If both values are dictionaries, do a recursive call
         if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
-            sub_result = dict_diff(dict1[key], dict2[key], new_path)
+            sub_result = _dict_diff(dict1[key], dict2[key], new_path)
             ret.update(sub_result)
         # Check if values are the same
         elif dict1[key] != dict2[key]:
@@ -47,5 +49,26 @@ def dict_diff(dict1, dict2, path=""):
 
 
 def is_valid_subdict(subdict, dict_):
-    diff = dict_diff(subdict, dict_)
+    diff = _dict_diff(subdict, dict_)
     return "different values" not in diff and "second dict missing" not in diff
+
+def _merge_record_data(
+    custom_workflow=None, additional_data=None, add_default_workflow=True
+):
+    """
+    :param custom_workflow: If user wants to use different workflow that the default one.
+    :param additional_data: Additional data beyond the defaults that should be put into the service.
+    :param add_default_workflow: Allows user to to pass data into the service without workflow - this might be useful for example
+    in case of wanting to use community default workflow.
+    """
+    json = copy.deepcopy(DEFAULT_RECORD_JSON)
+    if add_default_workflow:
+        always_merger.merge(json, {"parent": {"workflow": "default"}})
+    if custom_workflow:  # specifying this assumes use of workflows
+        json.setdefault("parent", {})["workflow"] = custom_workflow
+    if additional_data:
+        always_merger.merge(json, additional_data)
+
+    return json
+
+
