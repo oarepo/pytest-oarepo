@@ -2,7 +2,10 @@ import pytest
 from flask_security import login_user
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
+import copy
+from collections import defaultdict
 
+from deepmerge import always_merger
 
 @pytest.fixture(scope="module")
 def create_app(instance_path, entry_points):
@@ -11,13 +14,70 @@ def create_app(instance_path, entry_points):
 
 @pytest.fixture()
 def host():
-    return "https://127.0.0.1:5000/" #overwritable in application
+    return "https://127.0.0.1:5000/"
+
+@pytest.fixture()
+def default_record_json():
+    """
+    Default data for creating a record, without default workflow.
+    """
+    return {
+        "metadata": {
+            "creators": [
+                "Creator 1",
+                "Creator 2",
+            ],
+            "contributors": ["Contributor 1"],
+            "title": "blabla",
+        },
+        "files": {"enabled": False},
+    }
+
+
+@pytest.fixture()
+def default_record_with_workflow_json(default_record_json):
+    """
+    Default data for creating a record.
+    """
+    return {
+        **default_record_json,
+        "parent": {"workflow": "default"},
+    }
+
+@pytest.fixture()
+def prepare_record_data(default_record_with_workflow_json):
+    """
+    Function for merging input definitions into data passed to record service.
+    """
+    def _merge_record_data(
+        custom_data=None, custom_workflow=None, additional_data=None, add_default_workflow=True
+    ):
+        """
+        :param custom_workflow: If user wants to use different workflow that the default one.
+        :param additional_data: Additional data beyond the defaults that should be put into the service.
+        :param add_default_workflow: Allows user to to pass data into the service without workflow - this might be useful for example
+        in case of wanting to use community default workflow.
+        """
+        record_json = (
+            default_record_with_workflow_json if not custom_data else custom_data
+        )
+        json = copy.deepcopy(record_json)
+        if add_default_workflow:
+            always_merger.merge(json, {"parent": {"workflow": "default"}})
+        if custom_workflow:  # specifying this assumes use of workflows
+            json.setdefault("parent", {})["workflow"] = custom_workflow
+        if additional_data:
+            always_merger.merge(json, additional_data)
+
+        return json
+    return _merge_record_data
 
 @pytest.fixture()
 def vocab_cf(app, db, cache):
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
     prepare_cf_indices()
+
 
 class LoggedClient:
     def __init__(self, client, user_fixture):

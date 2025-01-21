@@ -1,148 +1,110 @@
-import copy
-from collections import namedtuple
-from io import BytesIO
-
 import pytest
-from deepmerge import always_merger
 from invenio_access.permissions import system_identity
 
 
 @pytest.fixture()
-def draft_factory(record_service, _merge_record_data):
+def draft_factory(record_service, prepare_record_data):
     """
     Call to instance a draft.
     """
+
     def draft(
-        client,
-        custom_workflow=None,
+        identity,
+        custom_data=None,
         additional_data=None,
+        custom_workflow=None,
         expand=None,
         **service_kwargs,
     ):
         """
         Create instance of a draft.
-        :param client: Client instance.
-        :param custom_workflow: If user wants to use different workflow that the default one.
-        :param additional_data: Additional data beyond the defaults that should be put into the service.
+        :param identity: Identity of tha caller.
+        :param custom_data: If defined, the default record data are overwritten.
+        :param additional_data: If defined, the additional data are merged with the default data.
+        :param custom_workflow: Define to use custom workflow.
         :param expand: Expand the response.
+        :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-        json = _merge_record_data(custom_workflow, additional_data)
+        # todo possibly support for more model types?
+        # like this perhaps
+        # service = record_service(model) if isinstance(record_service, callable) else record_service
+
+        json = prepare_record_data(custom_data, custom_workflow, additional_data)
         draft = record_service.create(
-            identity=client.user_fixture.identity, data=json, expand=expand, **service_kwargs
+            identity=identity, data=json, expand=expand, **service_kwargs
         )
-        return draft.to_dict() # unified interface
+        return draft.to_dict()  # unified interface
 
     return draft
 
 
 @pytest.fixture()
 def record_factory(record_service, draft_factory):
-    # bypassing request pattern with system identity
+    """
+    Call to instance a published record.
+    """
+
     def record(
-        client,
-        custom_workflow=None,
+        identity,
+        custom_data=None,
         additional_data=None,
+        custom_workflow=None,
         expand=None,
-        **service_kwargs):
-        """
-        Create instance of a draft.
-        :param client: Client instance.
-        :param custom_workflow: If user wants to use different workflow that the default one.
-        :param additional_data: Additional data beyond the defaults that should be put into the service.
-        :param expand: Expand the response.
-        """
-        draft = draft_factory(
-            client, additional_data=additional_data, custom_workflow=custom_workflow, expand=expand, **service_kwargs
-        )
-        record = record_service.publish(system_identity, draft.json["id"])
-        return record.to_dict() # unified interface
-
-    return record
-
-"""
-@pytest.fixture()
-def draft_factory(draft_factory_record_object, urls):
-    def _create_draft(
-        client,
-        *service_args,
-        custom_workflow=None,
-        additional_data=None,
-        expand=True,
         **service_kwargs,
     ):
-        draft = draft_factory_record_object(
-            client,
-            *service_args,
-            custom_workflow=custom_workflow,
+        """
+        Create instance of a published record.
+        :param identity: Identity of tha caller.
+        :param custom_data: If defined, the default record data are overwritten.
+        :param additional_data: If defined, the additional data are merged with the default data.
+        :param custom_workflow: Define to use custom workflow.
+        :param expand: Expand the response.
+        :param service_kwargs: Additional keyword arguments to pass to the service.
+        """
+        draft = draft_factory(
+            identity,
+            custom_data=custom_data,
             additional_data=additional_data,
+            custom_workflow=custom_workflow,
             **service_kwargs,
         )
-        url = f"{urls['BASE_URL']}{draft['id']}/draft" # todo repeated code + it would probably make more sense to use service outputs as defaults - requires rewriting tests in requests and communities
-        if expand:
-            url += "?expand=true"
-        return client.get(url)
-
-    return _create_draft
-
-
-
-@pytest.fixture()
-def record_factory(
-    record_service, draft_factory_record_object, urls, record_factory_record_object
-):
-
-    def record(client, custom_workflow=None, additional_data=None, expand=True):
-        record = record_factory_record_object(client, custom_workflow, additional_data)
-        url = f"{urls['BASE_URL']}{record['id']}"
-        if expand:
-            url += "?expand=true"
-        return client.get(url)
+        record = record_service.publish(
+            system_identity, draft["id"], expand=expand
+        )
+        return record.to_dict()  # unified interface
 
     return record
-"""
-
-
-@pytest.fixture()
-def upload_file():
-    def _upload_file(identity, record_id, files_service):
-        """
-        Uploads a default file to a record.
-        :param identity: Identity of the requester.
-        :param record_id: Id of the record to be uploaded on.
-        """
-        init = files_service.init_files(
-            identity,
-            record_id,
-            data=[
-                {"key": "test.pdf", "metadata": {"title": "Test file"}},
-            ],
-        )
-        upload = files_service.set_file_content(
-            identity, record_id, "test.pdf", stream=BytesIO(b"testfile")
-        )
-        commit = files_service.commit_file(identity, record_id, "test.pdf")
-        return commit
-
-    return _upload_file
 
 
 @pytest.fixture()
 def record_with_files_factory(
-    record_service,
-    upload_file,
-    draft_factory,
-    default_record_with_workflow_json,
-    urls,
+    record_service, draft_factory, default_record_with_workflow_json, upload_file
 ):
-    def record(client, custom_workflow=None, additional_data=None, expand=None):
+    """
+    Call to instance a published record with a file.
+    """
+    def record(
+        identity,
+        custom_data=None,
+        additional_data=None,
+        custom_workflow=None,
+        expand=None,
+        file_name="test.pdf",
+        custom_file_metadata=None,
+        **service_kwargs,
+    ):
         """
-        Create instance of a published record with the default file.
-        :param client: Client instance.
-        :param custom_workflow: If user wants to use different workflow that the default one.
-        :param additional_data: Additional data beyond the defaults that should be put into the service.
+        Create instance of a published record.
+        :param identity: Identity of tha caller.
+        :param custom_data: If defined, the default record data are overwritten.
+        :param additional_data: If defined, the additional data are merged with the default data.
+        :param custom_workflow: Define to use custom workflow.
         :param expand: Expand the response.
+        :param file_name: Name of the file to upload.
+        :param custom_file_metadata: Define to use custom file metadata.
+        :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-        identity = client.user_fixture.identity
+
         if (
             "files" in default_record_with_workflow_json
             and "enabled" in default_record_with_workflow_json["files"]
@@ -151,11 +113,21 @@ def record_with_files_factory(
                 additional_data = {}
             additional_data.setdefault("files", {}).setdefault("enabled", True)
         draft = draft_factory(
-            client, custom_workflow=custom_workflow, additional_data=additional_data
+            identity,
+            custom_data=custom_data,
+            additional_data=additional_data,
+            custom_workflow=custom_workflow,
+            **service_kwargs,
         )
         files_service = record_service._draft_files
         upload_file(identity, draft["id"], files_service)
-        record = record_service.publish(system_identity, draft["id"], expand=expand)
+        record = record_service.publish(
+            system_identity,
+            draft["id"],
+            expand=expand,
+            file_name=file_name,
+            custom_file_metadata=custom_file_metadata,
+        )
         return record.to_dict()
 
     return record

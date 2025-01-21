@@ -1,16 +1,11 @@
-import copy
-
 import pytest
-from invenio_access.permissions import system_identity
 from invenio_communities.cli import create_communities_custom_field
+from oarepo_communities.proxies import current_oarepo_communities
 from invenio_communities.communities.records.api import Community
-from invenio_communities.generators import CommunityRoleNeed
 from invenio_communities.proxies import current_communities
 from invenio_pidstore.errors import PIDDoesNotExistError
-from oarepo_communities.proxies import current_oarepo_communities
 
-from pytest_oarepo.communities.constants import MINIMAL_COMMUNITY
-from pytest_oarepo.communities.functions import community_get_or_create
+from pytest_oarepo.communities.functions import _index_users
 
 
 @pytest.fixture()
@@ -21,6 +16,19 @@ def community_inclusion_service():
 @pytest.fixture()
 def community_records_service():
     return current_oarepo_communities.community_records_service
+
+@pytest.fixture()
+def minimal_community():
+    return {
+        "access": {
+            "visibility": "public",
+            "record_policy": "open",
+        },
+        "slug": "public",
+        "metadata": {
+            "title": "My Community",
+        },
+    }
 
 
 @pytest.fixture()
@@ -33,25 +41,16 @@ def init_communities_cf(app, db, cache):
     Community.index.refresh()
 
 
-
-
-
 @pytest.fixture()
-def community(app, community_owner):
+def community(app, community_owner, community_get_or_create):
     return community_get_or_create(community_owner)
 
 
 @pytest.fixture()
-def communities(app, community_owner):
+def communities(app, community_owner, community_get_or_create):
     return {
-        "aaa": community_get_or_create(
-            community_owner,
-            slug="aaa"
-        ),
-        "bbb": community_get_or_create(
-            community_owner,
-            slug="bbb"
-        ),
+        "aaa": community_get_or_create(community_owner, slug="aaa"),
+        "bbb": community_get_or_create(community_owner, slug="bbb"),
     }
 
 
@@ -63,3 +62,26 @@ def community_owner(UserFixture, app, db):
     )
     u.create(app, db)
     return u
+
+@pytest.fixture()
+def community_get_or_create(minimal_community):
+    def _get_or_create(
+        community_owner, slug=None, community_dict=None, workflow=None
+    ):
+        """Util to get or create community, to avoid duplicate error."""
+        community_dict = community_dict if community_dict else minimal_community
+        slug = slug if slug else community_dict["slug"]
+        community_dict["slug"] = slug
+        try:
+            c = current_communities.service.record_cls.pid.resolve(slug)
+        except PIDDoesNotExistError:
+            c = current_communities.service.create(
+                community_owner.identity,
+                {**community_dict, "custom_fields": {"workflow": workflow or "default"}},
+            )
+            Community.index.refresh()
+            _index_users()
+            community_owner._identity = None  # the problem with creating
+
+        return c
+    return _get_or_create

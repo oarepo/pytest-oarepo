@@ -5,10 +5,16 @@ from oarepo_workflows.requests.generators import RecipientGeneratorMixin
 
 
 class TestEventType(CommentEventType):
+    """
+    Custom EventType.
+    """
     type_id = "test"
 
 
 class UserGenerator(RecipientGeneratorMixin, Generator):
+    """
+    Generator primarily used to define specific user as recipient of a request.
+    """
     def __init__(self, user_id):
         self.user_id = user_id
 

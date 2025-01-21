@@ -4,6 +4,9 @@ from invenio_users_resources.records import UserAggregate
 
 @pytest.fixture()
 def users(app, db, UserFixture):
+    """
+    Predefined user fixtures.
+    """
     user1 = UserFixture(
         email="user1@example.org",
         password="password",
