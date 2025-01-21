@@ -19,6 +19,9 @@ def community_records_service():
 
 @pytest.fixture()
 def minimal_community():
+    """
+    Default data used for creating a new community.
+    """
     return {
         "access": {
             "visibility": "public",
@@ -33,6 +36,9 @@ def minimal_community():
 
 @pytest.fixture()
 def init_communities_cf(app, db, cache):
+    """
+    Initialize oarepo custom fields including community specific ones.
+    """
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
     prepare_cf_indices()
@@ -43,6 +49,9 @@ def init_communities_cf(app, db, cache):
 
 @pytest.fixture()
 def community(app, community_owner, community_get_or_create):
+    """
+    Basic community.
+    """
     return community_get_or_create(community_owner)
 
 
@@ -56,6 +65,9 @@ def communities(app, community_owner, community_get_or_create):
 
 @pytest.fixture()
 def community_owner(UserFixture, app, db):
+    """
+    User fixture used as owner of the community fixture.
+    """
     u = UserFixture(
         email="community_owner@inveniosoftware.org",
         password="community_owner",
@@ -65,6 +77,9 @@ def community_owner(UserFixture, app, db):
 
 @pytest.fixture()
 def community_get_or_create(minimal_community):
+    """
+    Function returning existing community or creating new one if one with the same slug doesn't exist.
+    """
     def _get_or_create(
         community_owner, slug=None, community_dict=None, workflow=None
     ):

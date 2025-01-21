@@ -3,7 +3,6 @@ from flask_security import login_user
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 import copy
-from collections import defaultdict
 
 from deepmerge import always_merger
 
@@ -15,6 +14,13 @@ def create_app(instance_path, entry_points):
 @pytest.fixture()
 def host():
     return "https://127.0.0.1:5000/"
+
+@pytest.fixture()
+def link2testclient(host):
+    def _link2testclient(link, ui=False):
+        base_string = f"{host}api/" if not ui else host
+        return link[len(base_string) - 1 :]
+    return _link2testclient
 
 @pytest.fixture()
 def default_record_json():
@@ -45,7 +51,7 @@ def default_record_with_workflow_json(default_record_json):
     }
 
 @pytest.fixture()
-def prepare_record_data(default_record_with_workflow_json):
+def prepare_record_data(default_record_json):
     """
     Function for merging input definitions into data passed to record service.
     """
@@ -59,7 +65,7 @@ def prepare_record_data(default_record_with_workflow_json):
         in case of wanting to use community default workflow.
         """
         record_json = (
-            default_record_with_workflow_json if not custom_data else custom_data
+            default_record_json if not custom_data else custom_data
         )
         json = copy.deepcopy(record_json)
         if add_default_workflow:
@@ -80,6 +86,7 @@ def vocab_cf(app, db, cache):
 
 
 class LoggedClient:
+    # todo - using the different clients thing?
     def __init__(self, client, user_fixture):
         self.client = client
         self.user_fixture = user_fixture

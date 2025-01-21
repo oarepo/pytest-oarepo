@@ -3,12 +3,6 @@ from collections import defaultdict
 
 from deepmerge import always_merger
 
-
-def link2testclient(link, ui=False, host="https://127.0.0.1:5000/"):
-    base_string = f"{host}api/" if not ui else host
-    return link[len(base_string) - 1 :]
-
-
 # from chatgpt
 def _dict_diff(dict1, dict2, path=""):
     ret = defaultdict(list)

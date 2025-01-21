@@ -18,7 +18,7 @@ def draft_factory(record_service, prepare_record_data):
     ):
         """
         Create instance of a draft.
-        :param identity: Identity of tha caller.
+        :param identity: Identity of the caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
         :param custom_workflow: Define to use custom workflow.
@@ -54,7 +54,7 @@ def record_factory(record_service, draft_factory):
     ):
         """
         Create instance of a published record.
-        :param identity: Identity of tha caller.
+        :param identity: Identity of the caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
         :param custom_workflow: Define to use custom workflow.

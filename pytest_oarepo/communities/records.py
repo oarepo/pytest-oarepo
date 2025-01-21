@@ -3,6 +3,9 @@ from invenio_access.permissions import system_identity
 
 @pytest.fixture()
 def draft_with_community_factory(community_records_service, base_model_schema, prepare_record_data):
+    """
+    Call to instance draft in a community.
+    """
     def record(
         identity,
         community_id,
@@ -13,6 +16,17 @@ def draft_with_community_factory(community_records_service, base_model_schema, p
         expand=None,
         **service_kwargs,
     ):
+        """
+        Create instance of a draft in a community.
+        :param identity: Identity of the caller.
+        :param community_id: ID of the community.
+        :param model_schema: Optional model schema if using different than defined in base_model_schema fixture.
+        :param custom_data: If defined, the default record data are overwritten.
+        :param additional_data: If defined, the additional data are merged with the default data.
+        :param custom_workflow: Define to use custom workflow.
+        :param expand: Expand the response.
+        :param service_kwargs: Additional keyword arguments to pass to the service.
+        """
         additional_data = {} if not additional_data else additional_data
         if "$schema" not in additional_data:
             additional_data["$schema"] = (
@@ -35,7 +49,9 @@ def draft_with_community_factory(community_records_service, base_model_schema, p
 def published_record_with_community_factory(
     record_service, draft_with_community_factory
 ):
-    # skip the request approval
+    """
+    Call to instance published record in a community.
+    """
     def _published_record_with_community(
             identity,
             community_id,
@@ -46,6 +62,17 @@ def published_record_with_community_factory(
             expand=None,
             **service_kwargs,
     ):
+        """
+        Create instance of a published record in a community.
+        :param identity: Identity of the caller.
+        :param community_id: ID of the community.
+        :param model_schema: Optional model schema if using different than defined in base_model_schema fixture.
+        :param custom_data: If defined, the default record data are overwritten.
+        :param additional_data: If defined, the additional data are merged with the default data.
+        :param custom_workflow: Define to use custom workflow.
+        :param expand: Expand the response.
+        :param service_kwargs: Additional keyword arguments to pass to the service.
+        """
         draft = draft_with_community_factory(
             identity,
             community_id,

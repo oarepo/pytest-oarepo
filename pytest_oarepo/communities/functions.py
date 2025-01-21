@@ -28,7 +28,7 @@ def invite(user_fixture, community_id, role):
 
 
 def remove_member_from_community(user_id, community_id):
-    """Add/invite a user to a community with a specific role."""
+    """Remove a user from a community."""
     delete_data = {
         "members": [{"type": "user", "id": user_id}],
     }
@@ -38,6 +38,9 @@ def remove_member_from_community(user_id, community_id):
 
 
 def set_community_workflow(community_id, workflow="default"):
+    """
+    Set default workflow of a community.
+    """
     community_item = current_communities.service.read(system_identity, community_id)
     current_communities.service.update(
         system_identity,

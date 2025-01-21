@@ -15,9 +15,6 @@ from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
 from oarepo_requests.proxies import current_oarepo_requests_service
 
-from pytest_oarepo.functions import link2testclient
-from pytest_oarepo.requests.functions import create_request_from_link
-
 can_comment_only_receiver = [
     Receiver(),
     SystemProcess(),
@@ -64,6 +61,9 @@ def role(database):
 
 @pytest.fixture()
 def role_ui_serialization(host):
+    """
+    UI serialization of the example role in role fixture.
+    """
     return {
         "label": "it-dep",
         "links": {
@@ -97,6 +97,9 @@ def request_type_additional_data():
 def create_request(
     request_type_additional_data, record_service, oarepo_requests_service
 ):
+    """
+    Base fixture for creating a request.
+    """
     def _create_request(
         identity,
         id_,
@@ -106,6 +109,16 @@ def create_request(
         expand=False,
         **request_kwargs,
     ):
+        """
+        Create request of specific type on a specific record.
+        :param identity: Identity of the caller.
+        :param id_: ID of the topic record.
+        :param request_type: ID of the topic record.
+        :param topic_read_method: Method the service uses to read the topic.
+        :param additional_data: Additional data needed to create the request.
+        :param expand: Expand the created request response.
+        :param service_kwargs: Additional keyword arguments to pass to request service.
+        """
         topic_service = record_service
         if additional_data is None:
             additional_data = {}
@@ -131,6 +144,9 @@ def create_request(
 
 @pytest.fixture()
 def create_request_on_draft(create_request):
+    """
+    Fixture for creating a request on a draft.
+    """
     def _create(
         identity,
         topic_id,
@@ -140,12 +156,13 @@ def create_request_on_draft(create_request):
         **request_kwargs,
     ):
         """
-        Create request of specific type on a specific record..
-        :param client: Client instance.
-        :param record: Record on which the request should be created.
-        :param request_type: Which type of request should be created.
+        Create request of specific type on a draft record.
+        :param identity: Identity of the caller.
+        :param topic_id: ID of the topic record.
+        :param request_type: Type of the request.
         :param additional_data: Additional data needed to create the request.
         :param expand: Expand the created request response.
+        :param service_kwargs: Additional keyword arguments to pass to request service.
         """
         return create_request(
             identity,
@@ -162,7 +179,9 @@ def create_request_on_draft(create_request):
 
 @pytest.fixture()
 def create_request_on_record(create_request):
-
+    """
+    Fixture for creating a request on a published record.
+    """
     def _create(
         identity,
         topic_id,
@@ -172,12 +191,13 @@ def create_request_on_record(create_request):
         **request_kwargs,
     ):
         """
-        Create request of specific type on a specific record..
-        :param client: Client instance.
-        :param record: Record on which the request should be created.
-        :param request_type: Which type of request should be created.
+        Create request of specific type on a published record.
+        :param identity: Identity of the caller.
+        :param topic_id: ID of the topic record.
+        :param request_type: Type of the request.
         :param additional_data: Additional data needed to create the request.
         :param expand: Expand the created request response.
+        :param service_kwargs: Additional keyword arguments to pass to request service.
         """
         return create_request(
             identity,
@@ -194,6 +214,9 @@ def create_request_on_record(create_request):
 
 @pytest.fixture
 def submit_request_on_draft(create_request_on_draft, requests_service):
+    """
+    Fixture for creating and submitting request on a draft in one call.
+    """
     def _submit_request(
         identity,
         topic_id,
@@ -204,12 +227,13 @@ def submit_request_on_draft(create_request_on_draft, requests_service):
     ):
         """
         Creates and submits request of specific type on a specific record..
-        :param client: Client instance.
-        :param record: Record on which the request should be created.
-        :param request_type: Which type of request should be created.
+        :param identity: Identity of tha caller.
+        :param topic_id: ID of the topic record.
+        :param request_type: Type of the request.
         :param create_additional_data: Additional data needed to create the request.
         :param submit_additional_data: Additional data passed to the submit action.
-        :param expand: Expand the submitted request response.
+        :param expand: Expand the created request response.
+        :param service_kwargs: Additional keyword arguments to pass to request service.
         """
         create_response = create_request_on_draft(
             identity, topic_id, request_type, additional_data=create_additional_data
@@ -228,6 +252,9 @@ def submit_request_on_draft(create_request_on_draft, requests_service):
 
 @pytest.fixture
 def submit_request_on_record(create_request_on_record, requests_service):
+    """
+    Fixture for creating and submitting request on a published record in one call.
+    """
     def _submit_request(
         identity,
         topic_id,
@@ -258,42 +285,3 @@ def submit_request_on_record(create_request_on_record, requests_service):
         return submit_response
 
     return _submit_request
-
-@pytest.fixture
-def create_request_by_resource(request_type_additional_data):
-    def _create_request(
-        client, record, request_type, additional_data=None, **request_kwargs
-    ):
-        """
-        Create request of specific type on a specific record..
-        :param client: Client instance.
-        :param record: Record on which the request should be created.
-        :param request_type: Which type of request should be created.
-        :param additional_data: Additional data needed to create the request.
-        :param expand: Expand the created request response.
-        """
-        if additional_data is None:
-            additional_data = {}
-
-        applicable_requests = client.get(
-            link2testclient(record["links"]["applicable-requests"])
-        ).json["hits"]["hits"]
-        create_link = link2testclient(
-            create_request_from_link(applicable_requests, request_type)
-        )
-
-        if request_type in request_type_additional_data:
-            additional_data = always_merger.merge(
-                additional_data, request_type_additional_data[request_type]
-            )
-
-        if not additional_data:
-            create_response = client.post(create_link, **request_kwargs)
-        else:
-            create_response = client.post(
-                create_link, json=additional_data, **request_kwargs
-            )
-
-        return create_response
-
-    return _create_request
