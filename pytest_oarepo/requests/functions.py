@@ -7,6 +7,6 @@ def get_request_type(request_types_json, request_type):
     return selected_entry[0]
 
 
-def create_request_from_link(request_types_json, request_type):
+def get_request_create_link(request_types_json, request_type):
     selected_entry = get_request_type(request_types_json, request_type)
     return selected_entry["links"]["actions"]["create"]
