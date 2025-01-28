@@ -7,13 +7,16 @@
 #
 import pytest
 from deepmerge import always_merger
-from invenio_access.permissions import system_identity
-from invenio_accounts.proxies import current_datastore
 from invenio_records_permissions.generators import SystemProcess
+from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
 from oarepo_requests.proxies import current_oarepo_requests_service
+from invenio_access.permissions import system_identity
+from invenio_accounts.models import Role
+from invenio_accounts.proxies import current_datastore
+from invenio_users_resources.proxies import current_groups_service
 
 can_comment_only_receiver = [
     Receiver(),
@@ -60,6 +63,29 @@ def role(database):
 
 
 @pytest.fixture()
+def add_user_in_role(db):
+    """
+    Adds user to role or creates it if it doesn't exist
+    """
+
+    def _add_user_in_role(user, role_or_role_name: Role | str):
+        if isinstance(role_or_role_name, str):
+            try:
+                role = current_groups_service.read(
+                    system_identity, role_or_role_name
+                )._group.model.model_obj
+            except PermissionDeniedError:  # missing group in db raises this
+                role = Role(name=role_or_role_name)
+                db.session.add(role_or_role_name)
+        else:
+            role = role_or_role_name
+        user.user.roles.append(role)
+        db.session.commit()
+
+    return _add_user_in_role
+
+
+@pytest.fixture()
 def role_ui_serialization(host):
     """
     UI serialization of the example role in role fixture.
@@ -100,6 +126,7 @@ def create_request(
     """
     Base fixture for creating a request.
     """
+
     def _create_request(
         identity,
         id_,
@@ -147,6 +174,7 @@ def create_request_on_draft(create_request):
     """
     Fixture for creating a request on a draft.
     """
+
     def _create(
         identity,
         topic_id,
@@ -182,6 +210,7 @@ def create_request_on_record(create_request):
     """
     Fixture for creating a request on a published record.
     """
+
     def _create(
         identity,
         topic_id,
@@ -217,6 +246,7 @@ def submit_request_on_draft(create_request_on_draft, requests_service):
     """
     Fixture for creating and submitting request on a draft in one call.
     """
+
     def _submit_request(
         identity,
         topic_id,
@@ -255,6 +285,7 @@ def submit_request_on_record(create_request_on_record, requests_service):
     """
     Fixture for creating and submitting request on a published record in one call.
     """
+
     def _submit_request(
         identity,
         topic_id,
