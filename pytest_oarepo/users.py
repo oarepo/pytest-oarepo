@@ -37,6 +37,30 @@ def users(app, db, UserFixture):
     )
     user3.create(app, db)
 
+    user4 = UserFixture(
+        email="user4@example.org",
+        password="african",
+        username="african",
+        preferences={
+            "timezone": "Africa/Dakar", # something without daylight saving time; +0.0
+        },
+        active=True,
+        confirmed=True,
+    )
+    user4.create(app, db)
+
+    user5 = UserFixture(
+        email="user5@example.org",
+        password="mexican",
+        username="mexican",
+        preferences={
+            "timezone": "America/Mexico_City", # something without daylight saving time
+        },
+        active=True,
+        confirmed=True,
+    )
+    user5.create(app, db)
+
     db.session.commit()
     UserAggregate.index.refresh()
-    return [user1, user2, user3]
+    return [user1, user2, user3, user4, user5]
