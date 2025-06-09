@@ -5,7 +5,7 @@ from invenio_communities.communities.records.api import Community
 from invenio_communities.proxies import current_communities
 from invenio_pidstore.errors import PIDDoesNotExistError
 
-from pytest_oarepo.communities.functions import _index_users
+from pytest_oarepo.functions import _index_users
 
 
 @pytest.fixture()

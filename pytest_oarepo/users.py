@@ -1,5 +1,5 @@
 import pytest
-from invenio_users_resources.records import UserAggregate
+from pytest_oarepo.functions import _index_users
 
 
 @pytest.fixture()
@@ -62,5 +62,5 @@ def users(app, db, UserFixture):
     user5.create(app, db)
 
     db.session.commit()
-    UserAggregate.index.refresh()
+    _index_users()
     return [user1, user2, user3, user4, user5]
