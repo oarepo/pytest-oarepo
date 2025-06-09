@@ -1,7 +1,7 @@
-import copy
 from collections import defaultdict
 
-from deepmerge import always_merger
+from invenio_users_resources.proxies import current_users_service
+
 
 # from chatgpt
 def _dict_diff(dict1, dict2, path=""):
@@ -44,3 +44,8 @@ def _dict_diff(dict1, dict2, path=""):
 def is_valid_subdict(subdict, dict_):
     diff = _dict_diff(subdict, dict_)
     return "different values" not in diff and "second dict missing" not in diff
+
+
+def _index_users():
+    current_users_service.indexer.process_bulk_queue()
+    current_users_service.indexer.refresh()

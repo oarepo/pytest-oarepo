@@ -1,11 +1,7 @@
 from invenio_access.permissions import system_identity
 from invenio_communities.proxies import current_communities
-from invenio_users_resources.proxies import current_users_service
 
-
-def _index_users():
-    current_users_service.indexer.process_bulk_queue()
-    current_users_service.record_cls.index.refresh()
+from pytest_oarepo.functions import _index_users
 
 
 def invite(user_fixture, community_id, role):
