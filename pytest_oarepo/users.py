@@ -9,45 +9,28 @@ def users(app, db, UserFixture):
     """
     user1 = UserFixture(
         email="user1@example.org",
-        password="password", # NOSONAR
+        password="password",
         active=True,
         confirmed=True,
-        user_profile={
-            "full_name": "user 1",
-            "affiliations": "cesnet",
-        },
-        preferences={
-            "locale": "en"
-        }
     )
     user1.create(app, db)
 
     user2 = UserFixture(
         email="user2@example.org",
-        password="beetlesmasher", # NOSONAR
+        password="beetlesmasher",
         username="beetlesmasher",
         active=True,
         confirmed=True,
-        user_profile={
-            "full_name": "beetlesmasher",
-            "affiliations": "CERN",
-        },
-        preferences={
-            "locale": "en"
-        }
     )
     user2.create(app, db)
 
     user3 = UserFixture(
         email="user3@example.org",
-        password="beetlesmasher",  # NOSONAR
+        password="beetlesmasher",
         username="beetlesmasherXXL",
         user_profile={
             "full_name": "Maxipes Fik",
-            "affiliations": "cesnet",
-        },
-        preferences={
-            "locale": "cs"
+            "affiliations": "CERN",
         },
         active=True,
         confirmed=True,
@@ -56,10 +39,10 @@ def users(app, db, UserFixture):
 
     user4 = UserFixture(
         email="user4@example.org",
-        password="african",  # NOSONAR
+        password="african",
         username="african",
         preferences={
-            "timezone": "Africa/Dakar"  # something without daylight saving time; +0.0
+            "timezone": "Africa/Dakar", # something without daylight saving time; +0.0
         },
         active=True,
         confirmed=True,
@@ -68,41 +51,37 @@ def users(app, db, UserFixture):
 
     user5 = UserFixture(
         email="user5@example.org",
-        password="mexican",  # NOSONAR
+        password="mexican",
         username="mexican",
         preferences={
-            "timezone": "America/Mexico_City"  # something without daylight saving time
+            "timezone": "America/Mexico_City", # something without daylight saving time
         },
         active=True,
         confirmed=True,
     )
     user5.create(app, db)
 
-
-    user6 = UserFixture(
-        email="user6@example.org",
-        password="password",  # NOSONAR
-        active=True,
-        confirmed=True,
-    )
-    user6.create(app, db)
-
-    user7 = UserFixture(
-        email="user7@example.org",
-        password="password",  # NOSONAR
-        active=True,
-        confirmed=True,
-    )
-    user7.create(app, db)
-
-    user10 = UserFixture(
-        email="user10@example.org",
-        password="password",  # NOSONAR
-        active=True,
-        confirmed=True,
-    )
-    user10.create(app, db)
-
     db.session.commit()
     _index_users()
-    return [user1, user2, user3, user4, user5, user6, user7, user10]
+    return [user1, user2, user3, user4, user5]
+
+@pytest.fixture()
+def user_with_cs_locale(app, db, users, UserFixture): # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users
+    u = UserFixture(
+        email="pat@mat.cz",
+        password="patmat",  # NOSONAR
+        username="patmat",
+        user_profile={
+            "full_name": "patmat",
+            "affiliations": "cesnet",
+        },
+        preferences={
+            "locale": "cs"
+        },
+        active=True,
+        confirmed=True,
+    )
+    u.create(app, db)
+    db.session.commit()
+    _index_users()
+    return u
