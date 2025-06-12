@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from invenio_users_resources.proxies import current_users_service
-
+from flask import g
 
 # from chatgpt
 def _dict_diff(dict1, dict2, path=""):
@@ -49,3 +49,11 @@ def is_valid_subdict(subdict, dict_):
 def _index_users():
     current_users_service.indexer.process_bulk_queue()
     current_users_service.indexer.refresh()
+
+def clear_babel_context():
+    # for invenio 12
+    try:
+        from flask_babel import SimpleNamespace
+    except ImportError:
+        return
+    g._flask_babel = SimpleNamespace()
