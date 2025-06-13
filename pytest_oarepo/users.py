@@ -64,3 +64,24 @@ def users(app, db, UserFixture):
     db.session.commit()
     _index_users()
     return [user1, user2, user3, user4, user5]
+
+@pytest.fixture()
+def user_with_cs_locale(app, db, users, UserFixture): # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users
+    u = UserFixture(
+        email="pat@mat.cz",
+        password="patmat",  # NOSONAR
+        username="patmat",
+        user_profile={
+            "full_name": "patmat",
+            "affiliations": "cesnet",
+        },
+        preferences={
+            "locale": "cs"
+        },
+        active=True,
+        confirmed=True,
+    )
+    u.create(app, db)
+    db.session.commit()
+    _index_users()
+    return u
