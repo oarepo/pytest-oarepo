@@ -10,6 +10,9 @@ def users(app, db, UserFixture):
     user1 = UserFixture(
         email="user1@example.org",
         password="password",
+        user_profile={
+            "affiliations": "cesnet",
+        },
         active=True,
         confirmed=True,
     )
@@ -19,6 +22,9 @@ def users(app, db, UserFixture):
         email="user2@example.org",
         password="beetlesmasher",
         username="beetlesmasher",
+        user_profile={
+            "affiliations": "cesnet",
+        },
         active=True,
         confirmed=True,
     )
