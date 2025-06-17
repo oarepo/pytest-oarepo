@@ -71,6 +71,9 @@ def community_owner(UserFixture, app, db):
     u = UserFixture(
         email="community_owner@inveniosoftware.org",
         password="community_owner",
+        preferences={
+            "locale": "en"
+        },
     )
     u.create(app, db)
     return u

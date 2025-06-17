@@ -4,6 +4,7 @@ from pytest_oarepo.functions import _index_users
 
 @pytest.fixture()
 def users(app, db, UserFixture):
+    # todo use en locales? i'm not completely sure it won't break something
     """
     Predefined user fixtures.
     """
