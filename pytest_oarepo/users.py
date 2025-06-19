@@ -1,4 +1,5 @@
 import pytest
+
 from pytest_oarepo.functions import _index_users
 
 
@@ -13,6 +14,9 @@ def users(app, db, UserFixture):
         password="password",
         active=True,
         confirmed=True,
+        user_profile={
+            "affiliations": "CERN",
+        },
     )
     user1.create(app, db)
 
@@ -22,6 +26,9 @@ def users(app, db, UserFixture):
         username="beetlesmasher",
         active=True,
         confirmed=True,
+        user_profile={
+            "affiliations": "CERN",
+        },
     )
     user2.create(app, db)
 
@@ -43,7 +50,10 @@ def users(app, db, UserFixture):
         password="african",
         username="african",
         preferences={
-            "timezone": "Africa/Dakar", # something without daylight saving time; +0.0
+            "timezone": "Africa/Dakar",  # something without daylight saving time; +0.0
+        },
+        user_profile={
+            "affiliations": "CERN",
         },
         active=True,
         confirmed=True,
@@ -55,7 +65,10 @@ def users(app, db, UserFixture):
         password="mexican",
         username="mexican",
         preferences={
-            "timezone": "America/Mexico_City", # something without daylight saving time
+            "timezone": "America/Mexico_City",  # something without daylight saving time
+        },
+        user_profile={
+            "affiliations": "CERN",
         },
         active=True,
         confirmed=True,
@@ -66,8 +79,11 @@ def users(app, db, UserFixture):
     _index_users()
     return [user1, user2, user3, user4, user5]
 
+
 @pytest.fixture()
-def user_with_cs_locale(app, db, users, UserFixture): # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users
+def user_with_cs_locale(
+    app, db, users, UserFixture
+):  # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users
     u = UserFixture(
         email="pat@mat.cz",
         password="patmat",  # NOSONAR
@@ -76,9 +92,7 @@ def user_with_cs_locale(app, db, users, UserFixture): # adding to users would ca
             "full_name": "patmat",
             "affiliations": "cesnet",
         },
-        preferences={
-            "locale": "cs"
-        },
+        preferences={"locale": "cs"},
         active=True,
         confirmed=True,
     )
