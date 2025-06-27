@@ -2,6 +2,7 @@ from pathlib import Path
 
 from oarepo_runtime.datastreams import StreamBatch
 from oarepo_runtime.datastreams.fixtures import FixturesCallback, load_fixtures
+from invenio_vocabularies.records.api import Vocabulary
 
 
 def load_test_vocabularies():
@@ -17,3 +18,4 @@ def load_test_vocabularies():
         callback=callback,
         system_fixtures=False
     )
+    Vocabulary.index.refresh()
