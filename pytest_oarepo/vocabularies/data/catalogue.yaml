@@ -1,0 +1,9 @@
+vocabulary-removalreasons:
+  - writer: vocabulary
+    vocabulary: removalreasons
+    pid_type: v-rr
+    title:
+      cs: Důvody smazání
+      en: Removal reasons
+  - source: removal_reasons.yaml
+
