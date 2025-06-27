@@ -5,5 +5,5 @@ vocabulary-removalreasons:
     title:
       cs: Důvody smazání
       en: Removal reasons
-  - source: removalReasons.xlsx
+  - source: removal_reasons.yaml
 
