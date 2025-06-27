@@ -5,6 +5,9 @@ OAREPO_VERSION=${OAREPO_VERSION:-12}
 PYTHON="${PYTHON:-python3.12}"
 VENV=".venv"
 
+export PIP_EXTRA_INDEX_URL=https://gitlab.cesnet.cz/api/v4/projects/1408/packages/pypi/simple
+export UV_EXTRA_INDEX_URL=https://gitlab.cesnet.cz/api/v4/projects/1408/packages/pypi/simple
+
 test_scripts() {
   local folder="$1/*"
   for entry in $folder
@@ -22,7 +25,7 @@ test_scripts() {
 . $VENV/bin/activate
 pip install -U setuptools pip wheel
 pip install -e .
-pip install "oarepo[tests]==${OAREPO_VERSION}.*" #correct version
+pip install "oarepo[tests,rdm]==${OAREPO_VERSION}.*" #correct version
 pip install deepmerge
 
 test_scripts "./pytest_oarepo"
