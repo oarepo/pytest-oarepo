@@ -1,5 +1,5 @@
 import pytest
-from flask_security import login_user
+from flask_security import login_user, logout_user
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 import copy
@@ -78,39 +78,44 @@ def prepare_record_data(default_record_json):
         return json
     return _merge_record_data
 
+
 @pytest.fixture()
 def vocab_cf(app, db, cache):
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
     prepare_cf_indices()
 
-
+from sqlalchemy.exc import InvalidRequestError
 class LoggedClient:
     # todo - using the different clients thing?
     def __init__(self, client, user_fixture):
         self.client = client
         self.user_fixture = user_fixture
 
-    def _login(self):
-        login_user(self.user_fixture.user, remember=True)
+    def _request(self, method, *args, **kwargs):
+        from invenio_db import db
+        try:
+            login_user(self.user_fixture.user)
+        except InvalidRequestError:
+            db.session.merge(self.user_fixture.user)
+            login_user(self.user_fixture.user)
         login_user_via_session(self.client, email=self.user_fixture.email)
+        try:
+            return getattr(self.client, method)(*args, **kwargs)
+        finally:
+            logout_user()
 
     def post(self, *args, **kwargs):
-        self._login()
-        return self.client.post(*args, **kwargs)
+        return self._request("post", *args, **kwargs)
 
     def get(self, *args, **kwargs):
-        self._login()
-        return self.client.get(*args, **kwargs)
+        return self._request("get", *args, **kwargs)
 
     def put(self, *args, **kwargs):
-        self._login()
-        return self.client.put(*args, **kwargs)
+        return self._request("put", *args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        self._login()
-        return self.client.delete(*args, **kwargs)
-
+        return self._request("delete", *args, **kwargs)
 
 @pytest.fixture()
 def logged_client(client):

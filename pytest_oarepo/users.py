@@ -1,13 +1,25 @@
 import pytest
 
 from pytest_oarepo.functions import _index_users
+from sqlalchemy.exc import IntegrityError
 
+
+def _create_user(user_fixture, app, db):
+    try:
+        user_fixture.create(app, db)
+    except IntegrityError:
+        datastore = app.extensions["security"].datastore
+        user_fixture._user = datastore.get_user_by_email(user_fixture.email)
+        user_fixture._app = app
+        app.logger.info(f"skipping creation of {user_fixture.email}, already existing")
+        #db.session.rollback()
 
 @pytest.fixture()
 def users(app, db, UserFixture):
     # todo use en locales? i'm not completely sure it won't break something
     """
     Predefined user fixtures.
+
     """
     user1 = UserFixture(
         email="user1@example.org",
@@ -18,7 +30,7 @@ def users(app, db, UserFixture):
             "affiliations": "CERN",
         },
     )
-    user1.create(app, db)
+    _create_user(user1, app,  db)
 
     user2 = UserFixture(
         email="user2@example.org",
@@ -30,7 +42,7 @@ def users(app, db, UserFixture):
             "affiliations": "CERN",
         },
     )
-    user2.create(app, db)
+    _create_user(user2, app, db)
 
     user3 = UserFixture(
         email="user3@example.org",
@@ -43,7 +55,7 @@ def users(app, db, UserFixture):
         active=True,
         confirmed=True,
     )
-    user3.create(app, db)
+    _create_user(user3, app,  db)
 
     user4 = UserFixture(
         email="user4@example.org",
@@ -58,7 +70,7 @@ def users(app, db, UserFixture):
         active=True,
         confirmed=True,
     )
-    user4.create(app, db)
+    _create_user(user4, app,  db)
 
     user5 = UserFixture(
         email="user5@example.org",
@@ -73,7 +85,7 @@ def users(app, db, UserFixture):
         active=True,
         confirmed=True,
     )
-    user5.create(app, db)
+    _create_user(user5, app,  db)
 
     db.session.commit()
     _index_users()

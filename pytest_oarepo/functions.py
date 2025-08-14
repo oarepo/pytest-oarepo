@@ -47,7 +47,7 @@ def is_valid_subdict(subdict, dict_):
 
 
 def _index_users():
-    current_users_service.indexer.process_bulk_queue()
+    # current_users_service.indexer.process_bulk_queue()
     current_users_service.indexer.refresh()
 
 def clear_babel_context():
