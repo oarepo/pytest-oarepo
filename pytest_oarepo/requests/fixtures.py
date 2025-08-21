@@ -7,16 +7,16 @@
 #
 import pytest
 from deepmerge import always_merger
+from invenio_access.permissions import system_identity
+from invenio_accounts.models import Role
+from invenio_accounts.proxies import current_datastore
 from invenio_records_permissions.generators import SystemProcess
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
-from oarepo_requests.proxies import current_oarepo_requests_service
-from invenio_access.permissions import system_identity
-from invenio_accounts.models import Role
-from invenio_accounts.proxies import current_datastore
 from invenio_users_resources.proxies import current_groups_service
+from oarepo_requests.proxies import current_oarepo_requests_service
 
 can_comment_only_receiver = [
     Receiver(),
@@ -42,14 +42,12 @@ def oarepo_requests_service(app):
 
 def _create_role(id, name, description, is_managed, database):
     """Creates a Role/Group."""
-    r = current_datastore.create_role(
-        id=id, name=name, description=description, is_managed=is_managed
-    )
+    r = current_datastore.create_role(id=id, name=name, description=description, is_managed=is_managed)
     current_datastore.commit()
     return r
 
 
-@pytest.fixture()
+@pytest.fixture
 def role(database):
     """A single group."""
     r = _create_role(
@@ -62,18 +60,15 @@ def role(database):
     return r
 
 
-@pytest.fixture()
+@pytest.fixture
 def add_user_in_role(db):
-    """
-    Adds user to role or creates it if it doesn't exist
+    """Adds user to role or creates it if it doesn't exist
     """
 
     def _add_user_in_role(user, role_or_role_name: Role | str):
         if isinstance(role_or_role_name, str):
             try:
-                role = current_groups_service.read(
-                    system_identity, role_or_role_name
-                )._group.model.model_obj
+                role = current_groups_service.read(system_identity, role_or_role_name)._group.model.model_obj
             except PermissionDeniedError:  # missing group in db raises this
                 role = Role(name=role_or_role_name)
                 db.session.add(role_or_role_name)
@@ -85,10 +80,9 @@ def add_user_in_role(db):
     return _add_user_in_role
 
 
-@pytest.fixture()
+@pytest.fixture
 def role_ui_serialization(host):
-    """
-    UI serialization of the example role in role fixture.
+    """UI serialization of the example role in role fixture.
     """
     return {
         "label": "it-dep",
@@ -101,7 +95,7 @@ def role_ui_serialization(host):
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def events_resource_data():
     return {
         "payload": {
@@ -111,20 +105,16 @@ def events_resource_data():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def request_type_additional_data():
-    """
-    Fixture for adding required input data default values specific by request type.
+    """Fixture for adding required input data default values specific by request type.
     """
     return {"publish_draft": {"payload": {"version": "1.0"}}}
 
 
-@pytest.fixture()
-def create_request(
-    request_type_additional_data, record_service, oarepo_requests_service
-):
-    """
-    Base fixture for creating a request.
+@pytest.fixture
+def create_request(request_type_additional_data, record_service, oarepo_requests_service):
+    """Base fixture for creating a request.
     """
 
     def _create_request(
@@ -136,8 +126,7 @@ def create_request(
         expand=False,
         **request_kwargs,
     ):
-        """
-        Create request of specific type on a specific record.
+        """Create request of specific type on a specific record.
         :param identity: Identity of the caller.
         :param id_: ID of the topic record.
         :param request_type: ID of the topic record.
@@ -151,9 +140,7 @@ def create_request(
             additional_data = {}
 
         if request_type in request_type_additional_data:
-            additional_data = always_merger.merge(
-                additional_data, request_type_additional_data[request_type]
-            )
+            additional_data = always_merger.merge(additional_data, request_type_additional_data[request_type])
 
         topic = getattr(topic_service, topic_read_method)(system_identity, id_)._obj
         response = oarepo_requests_service.create(
@@ -169,10 +156,9 @@ def create_request(
     return _create_request
 
 
-@pytest.fixture()
+@pytest.fixture
 def create_request_on_draft(create_request):
-    """
-    Fixture for creating a request on a draft.
+    """Fixture for creating a request on a draft.
     """
 
     def _create(
@@ -183,8 +169,7 @@ def create_request_on_draft(create_request):
         expand=False,
         **request_kwargs,
     ):
-        """
-        Create request of specific type on a draft record.
+        """Create request of specific type on a draft record.
         :param identity: Identity of the caller.
         :param topic_id: ID of the topic record.
         :param request_type: Type of the request.
@@ -205,10 +190,9 @@ def create_request_on_draft(create_request):
     return _create
 
 
-@pytest.fixture()
+@pytest.fixture
 def create_request_on_record(create_request):
-    """
-    Fixture for creating a request on a published record.
+    """Fixture for creating a request on a published record.
     """
 
     def _create(
@@ -219,8 +203,7 @@ def create_request_on_record(create_request):
         expand=False,
         **request_kwargs,
     ):
-        """
-        Create request of specific type on a published record.
+        """Create request of specific type on a published record.
         :param identity: Identity of the caller.
         :param topic_id: ID of the topic record.
         :param request_type: Type of the request.
@@ -243,8 +226,7 @@ def create_request_on_record(create_request):
 
 @pytest.fixture
 def submit_request_on_draft(create_request_on_draft, requests_service):
-    """
-    Fixture for creating and submitting request on a draft in one call.
+    """Fixture for creating and submitting request on a draft in one call.
     """
 
     def _submit_request(
@@ -255,8 +237,7 @@ def submit_request_on_draft(create_request_on_draft, requests_service):
         submit_additional_data=None,
         expand=False,
     ):
-        """
-        Creates and submits request of specific type on a specific record..
+        """Creates and submits request of specific type on a specific record..
         :param identity: Identity of tha caller.
         :param topic_id: ID of the topic record.
         :param request_type: Type of the request.
@@ -282,8 +263,7 @@ def submit_request_on_draft(create_request_on_draft, requests_service):
 
 @pytest.fixture
 def submit_request_on_record(create_request_on_record, requests_service):
-    """
-    Fixture for creating and submitting request on a published record in one call.
+    """Fixture for creating and submitting request on a published record in one call.
     """
 
     def _submit_request(
@@ -294,8 +274,7 @@ def submit_request_on_record(create_request_on_record, requests_service):
         submit_additional_data=None,
         expand=False,
     ):
-        """
-        Creates and submits request of specific type on a specific record..
+        """Creates and submits request of specific type on a specific record..
         :param client: Client instance.
         :param record: Record on which the request should be created.
         :param request_type: Which type of request should be created.
