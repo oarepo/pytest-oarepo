@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pytest-oarepo"
+dynamic = ["version"]
+description = ""
+readme = "README.md"
+license = "MIT"
+dependencies = ["oarepo[rdm,tests]>=13,<14"]
+
+[project.optional-dependencies]
+base = [
+    "deepmerge",
+    "oarepo-runtime",
+    "pytest>=7.1.2",
+]
+communities = [
+    "deepmerge",
+    "oarepo-communities",
+    "oarepo-requests",
+    "oarepo-runtime",
+    "oarepo-workflows",
+    "pytest>=7.1.2",
+]
+requests = [
+    "deepmerge",
+    "oarepo-requests",
+    "oarepo-runtime",
+    "oarepo-workflows",
+    "pytest>=7.1.2",
+]
+vocabularies = [
+    "deepmerge",
+    "oarepo-runtime",
+    "oarepo-vocabularies",
+    "pytest>=7.1.2",
+]
+workflows = [
+    "deepmerge",
+    "oarepo-runtime",
+    "oarepo-workflows",
+    "pytest>=7.1.2",
+]
+
+[project.entry-points."invenio_assets.webpack"]
+test_branding = "pytest_oarepo.ui.branding.webpack:theme"
+test_components = "pytest_oarepo.ui.components.webpack:theme"
+test_i18n = "pytest_oarepo.ui.i18n.webpack:theme"
+
+
+[tool.hatch.version]
+path = "pytest_oarepo/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/pytest_oarepo",
+]
