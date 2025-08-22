@@ -3,11 +3,10 @@ import pytest
 from pytest_oarepo.functions import _index_users
 
 
-@pytest.fixture()
+@pytest.fixture
 def users(app, db, UserFixture):
-    # todo use en locales? i'm not completely sure it won't break something
-    """
-    Predefined user fixtures.
+    # TODO use en locales? i'm not completely sure it won't break something
+    """Predefined user fixtures.
     """
     user1 = UserFixture(
         email="user1@example.org",
@@ -80,7 +79,7 @@ def users(app, db, UserFixture):
     return [user1, user2, user3, user4, user5]
 
 
-@pytest.fixture()
+@pytest.fixture
 def user_with_cs_locale(
     app, db, users, UserFixture
 ):  # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users

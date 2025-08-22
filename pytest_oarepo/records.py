@@ -2,10 +2,9 @@ import pytest
 from invenio_access.permissions import system_identity
 
 
-@pytest.fixture()
+@pytest.fixture
 def draft_factory(record_service, prepare_record_data):
-    """
-    Call to instance a draft.
+    """Call to instance a draft.
     """
 
     def draft(
@@ -16,8 +15,7 @@ def draft_factory(record_service, prepare_record_data):
         expand=None,
         **service_kwargs,
     ):
-        """
-        Create instance of a draft.
+        """Create instance of a draft.
         :param identity: Identity of the caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
@@ -25,23 +23,20 @@ def draft_factory(record_service, prepare_record_data):
         :param expand: Expand the response.
         :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-        # todo possibly support for more model types?
+        # TODO possibly support for more model types?
         # like this perhaps
         # service = record_service(model) if isinstance(record_service, callable) else record_service
 
         json = prepare_record_data(custom_data, custom_workflow, additional_data)
-        draft = record_service.create(
-            identity=identity, data=json, expand=expand, **service_kwargs
-        )
+        draft = record_service.create(identity=identity, data=json, expand=expand, **service_kwargs)
         return draft.to_dict()  # unified interface
 
     return draft
 
 
-@pytest.fixture()
+@pytest.fixture
 def record_factory(record_service, draft_factory):
-    """
-    Call to instance a published record.
+    """Call to instance a published record.
     """
 
     def record(
@@ -52,8 +47,7 @@ def record_factory(record_service, draft_factory):
         expand=None,
         **service_kwargs,
     ):
-        """
-        Create instance of a published record.
+        """Create instance of a published record.
         :param identity: Identity of the caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
@@ -68,21 +62,17 @@ def record_factory(record_service, draft_factory):
             custom_workflow=custom_workflow,
             **service_kwargs,
         )
-        record = record_service.publish(
-            system_identity, draft["id"], expand=expand
-        )
+        record = record_service.publish(system_identity, draft["id"], expand=expand)
         return record.to_dict()  # unified interface
 
     return record
 
 
-@pytest.fixture()
-def record_with_files_factory(
-    record_service, draft_factory, default_record_with_workflow_json, upload_file
-):
+@pytest.fixture
+def record_with_files_factory(record_service, draft_factory, default_record_with_workflow_json, upload_file):
+    """Call to instance a published record with a file.
     """
-    Call to instance a published record with a file.
-    """
+
     def record(
         identity,
         custom_data=None,
@@ -93,8 +83,7 @@ def record_with_files_factory(
         custom_file_metadata=None,
         **service_kwargs,
     ):
-        """
-        Create instance of a published record.
+        """Create instance of a published record.
         :param identity: Identity of tha caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
@@ -104,11 +93,7 @@ def record_with_files_factory(
         :param custom_file_metadata: Define to use custom file metadata.
         :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-
-        if (
-            "files" in default_record_with_workflow_json
-            and "enabled" in default_record_with_workflow_json["files"]
-        ):
+        if "files" in default_record_with_workflow_json and "enabled" in default_record_with_workflow_json["files"]:
             if not additional_data:
                 additional_data = {}
             additional_data.setdefault("files", {}).setdefault("enabled", True)

@@ -16,9 +16,7 @@ def invite(user_fixture, community_id, role):
         "role": role,
         "visible": True,
     }
-    current_communities.service.members.add(
-        system_identity, community_id, invitation_data
-    )
+    current_communities.service.members.add(system_identity, community_id, invitation_data)
     _index_users()
     user_fixture._identity = None
 
@@ -28,14 +26,11 @@ def remove_member_from_community(user_id, community_id):
     delete_data = {
         "members": [{"type": "user", "id": user_id}],
     }
-    member_delete = current_communities.service.members.delete(
-        system_identity, community_id, delete_data
-    )
+    member_delete = current_communities.service.members.delete(system_identity, community_id, delete_data)
 
 
 def set_community_workflow(community_id, workflow="default"):
-    """
-    Set default workflow of a community.
+    """Set default workflow of a community.
     """
     community_item = current_communities.service.read(system_identity, community_id)
     current_communities.service.update(
