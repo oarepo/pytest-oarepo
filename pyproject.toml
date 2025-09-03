@@ -48,10 +48,7 @@ workflows = [
 ]
 
 [project.entry-points."invenio_assets.webpack"]
-test_branding = "pytest_oarepo.ui.branding.webpack:theme"
-test_components = "pytest_oarepo.ui.components.webpack:theme"
 test_i18n = "pytest_oarepo.ui.i18n.webpack:theme"
-
 
 [tool.hatch.version]
 path = "pytest_oarepo/__init__.py"
