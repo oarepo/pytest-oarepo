@@ -46,6 +46,9 @@ workflows = [
     "oarepo-workflows",
     "pytest>=7.1.2",
 ]
+ui = [
+    "oarepo-theme"
+]
 
 [project.entry-points."invenio_assets.webpack"]
 test_i18n = "pytest_oarepo.ui.i18n.webpack:theme"
