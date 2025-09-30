@@ -125,8 +125,6 @@ def record_with_files_factory(
             system_identity,
             draft["id"],
             expand=expand,
-            file_name=file_name,
-            custom_file_metadata=custom_file_metadata,
         )
         return record.to_dict()
 
