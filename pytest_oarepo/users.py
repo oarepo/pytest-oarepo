@@ -28,14 +28,6 @@ def _create_user(user_fixture, app, db) -> None:
 @pytest.fixture
 def users(app, db, UserFixture, password):
 
-    if db.engine.dialect.name == "postgresql":
-        from sqlalchemy import text
-        from invenio_accounts.models import User
-        name = User.__table__.name
-        sql = f'ALTER SEQUENCE "{name}_id_seq" RESTART WITH 1'
-        db.session.execute(text(sql))
-        db.session.commit()
-
     """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",
