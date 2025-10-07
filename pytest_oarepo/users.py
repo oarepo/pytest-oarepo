@@ -1,50 +1,70 @@
-import pytest
+import base64
+import os
 
-from pytest_oarepo.functions import _index_users
+import pytest
 from sqlalchemy.exc import IntegrityError
 
+from pytest_oarepo.functions import _index_users
 
-def _create_user(user_fixture, app, db):
+
+@pytest.fixture
+def password():
+    """Password fixture."""
+    return base64.b64encode(os.urandom(16)).decode("utf-8")
+
+
+def _create_user(user_fixture, app, db) -> None:
+    """Create users, reusing it if it already exists."""
     try:
         user_fixture.create(app, db)
     except IntegrityError:
         datastore = app.extensions["security"].datastore
-        user_fixture._user = datastore.get_user_by_email(user_fixture.email)
-        user_fixture._app = app
+        user_fixture._user = datastore.get_user_by_email(  # noqa: SLF001
+            user_fixture.email
+        )
+        user_fixture._app = app  # noqa: SLF001
 
-@pytest.fixture()
-def users(app, db, UserFixture):
-    # todo use en locales? i'm not completely sure it won't break something
-    """
-    Predefined user fixtures.
 
-    """
+@pytest.fixture
+def users(app, db, UserFixture, password):
+
+    if db.engine.dialect.name == "postgresql":
+        from sqlalchemy import text
+        from invenio_accounts.models import User
+        name = User.__table__.name
+        sql = f'ALTER SEQUENCE "{name}_id_seq" RESTART WITH 1'
+        db.session.execute(text(sql))
+        db.session.commit()
+
+    """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",
-        password="password",
+        password=password,
         active=True,
         confirmed=True,
         user_profile={
             "affiliations": "CERN",
         },
+        preferences={"locale": "en", "visibility": "public"},
     )
-    _create_user(user1, app,  db)
+    _create_user(user1, app, db)
 
     user2 = UserFixture(
         email="user2@example.org",
-        password="beetlesmasher",
+        password=password,
         username="beetlesmasher",
         active=True,
         confirmed=True,
         user_profile={
             "affiliations": "CERN",
         },
+        preferences={"locale": "en", "visibility": "public"},
     )
     _create_user(user2, app, db)
 
     user3 = UserFixture(
         email="user3@example.org",
-        password="beetlesmasher",
+        password=password,
         username="beetlesmasherXXL",
         user_profile={
             "full_name": "Maxipes Fik",
@@ -52,15 +72,18 @@ def users(app, db, UserFixture):
         },
         active=True,
         confirmed=True,
+        preferences={"locale": "en", "visibility": "public"},
     )
-    _create_user(user3, app,  db)
+    _create_user(user3, app, db)
 
     user4 = UserFixture(
         email="user4@example.org",
-        password="african",
+        password=password,
         username="african",
         preferences={
             "timezone": "Africa/Dakar",  # something without daylight saving time; +0.0
+            "locale": "en",
+            "visibility": "public",
         },
         user_profile={
             "affiliations": "CERN",
@@ -68,14 +91,16 @@ def users(app, db, UserFixture):
         active=True,
         confirmed=True,
     )
-    _create_user(user4, app,  db)
+    _create_user(user4, app, db)
 
     user5 = UserFixture(
         email="user5@example.org",
-        password="mexican",
+        password=password,
         username="mexican",
         preferences={
             "timezone": "America/Mexico_City",  # something without daylight saving time
+            "locale": "en",
+            "visibility": "public"
         },
         user_profile={
             "affiliations": "CERN",
@@ -90,13 +115,13 @@ def users(app, db, UserFixture):
     return [user1, user2, user3, user4, user5]
 
 
-@pytest.fixture()
+@pytest.fixture
 def user_with_cs_locale(
-    app, db, users, UserFixture
+    app, db, users, UserFixture, password
 ):  # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users
     u = UserFixture(
         email="pat@mat.cz",
-        password="patmat",  # NOSONAR
+        password=password,  # NOSONAR
         username="patmat",
         user_profile={
             "full_name": "patmat",
@@ -106,7 +131,7 @@ def user_with_cs_locale(
         active=True,
         confirmed=True,
     )
-    u.create(app, db)
+    _create_user(u, app, db)
     db.session.commit()
     _index_users()
     return u
