@@ -1,3 +1,68 @@
-[build_system]
-requires = ["setuptools", "wheel", "babel>2.8"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "pytest-oarepo"
+dynamic = ["version"]
+description = ""
+readme = "README.md"
+license = "MIT"
+
+requires-python = ">=3.13,<3.14"
+
+dependencies = [
+    "oarepo[rdm,tests]>=14.0.0,<15.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/oarepo/pytest_oarepo"
+
+[project.optional-dependencies]
+base = [
+    "deepmerge",
+    "oarepo-runtime>=2.0.0dev13,<3.0.0",
+    "pytest>=7.1.2",
+]
+#communities = [
+#    "deepmerge",
+#    "oarepo-communities",
+#    "oarepo-requests",
+#    "oarepo-runtime",
+#    "oarepo-workflows",
+#    "pytest>=7.1.2",
+#]
+#requests = [
+#    "deepmerge",
+#    "oarepo-requests",
+#    "oarepo-runtime>=2.0.0dev13,<3.0.0",
+#    "oarepo-workflows>=2.0.0dev3,<3.0.0",
+#    "pytest>=7.1.2",
+#]
+#vocabularies = [
+#    "deepmerge",
+#    "oarepo-runtime>=2.0.0dev13,<3.0.0",
+#    "oarepo-vocabularies",
+#    "pytest>=7.1.2",
+#]
+workflows = [
+    "deepmerge",
+    "oarepo-runtime>=2.0.0dev13,<3.0.0",
+    "oarepo-workflows>=2.0.0dev3,<3.0.0",
+    "pytest>=7.1.2",
+]
+oarepo14 = [
+    "oarepo[rdm,tests]>=14.0.0,<15.0.0",
+]
+
+[[tool.mypy.overrides]]
+module = ["untyped_package.*"]
+follow_untyped_imports = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "pytest_oarepo/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/pytest_oarepo",
+]
