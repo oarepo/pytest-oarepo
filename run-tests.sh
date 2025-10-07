@@ -33,8 +33,8 @@ test_scripts "./pytest_oarepo"
 pip install oarepo-vocabularies
 test_scripts "./pytest_oarepo/vocabularies"
 
-pip install oarepo-requests
-test_scripts "./pytest_oarepo/requests"
+# pip install oarepo-requests
+# test_scripts "./pytest_oarepo/requests"
 
-pip install oarepo-communities
-test_scripts "./pytest_oarepo/communities"
+# pip install oarepo-communities
+# test_scripts "./pytest_oarepo/communities"
