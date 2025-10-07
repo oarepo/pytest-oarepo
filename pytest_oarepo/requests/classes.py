@@ -8,7 +8,7 @@ class TestEventType(CommentEventType):
     """
     Custom EventType.
     """
-    type_id = "test"
+    type_id = "T"
 
 
 class UserGenerator(RecipientGeneratorMixin, Generator):
