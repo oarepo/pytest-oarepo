@@ -12,7 +12,7 @@ from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
-from oarepo_requests.proxies import current_oarepo_requests_service
+from oarepo_requests.proxies import current_requests_service
 from invenio_access.permissions import system_identity
 from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
@@ -37,7 +37,7 @@ def request_events_service(app):
 
 @pytest.fixture(scope="module")
 def oarepo_requests_service(app):
-    return current_oarepo_requests_service
+    return current_requests_service
 
 
 def _create_role(id, name, description, is_managed, database):
