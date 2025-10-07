@@ -1,3 +1,15 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of pytest-oarepo (see https://github.com/oarepo/pytest_oarepo).
+#
+# pytest-oarepo is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""Functions used in communities."""
+
+from __future__ import annotations
+
 from invenio_access.permissions import system_identity
 from invenio_communities.proxies import current_communities
 
@@ -16,9 +28,7 @@ def invite(user_fixture, community_id, role):
         "role": role,
         "visible": True,
     }
-    current_communities.service.members.add(
-        system_identity, community_id, invitation_data
-    )
+    current_communities.service.members.add(system_identity, community_id, invitation_data)
     _index_users()
     user_fixture._identity = None
 
@@ -28,15 +38,11 @@ def remove_member_from_community(user_id, community_id):
     delete_data = {
         "members": [{"type": "user", "id": user_id}],
     }
-    member_delete = current_communities.service.members.delete(
-        system_identity, community_id, delete_data
-    )
+    current_communities.service.members.delete(system_identity, community_id, delete_data)
 
 
 def set_community_workflow(community_id, workflow="default"):
-    """
-    Set default workflow of a community.
-    """
+    """Set default workflow of a community."""
     community_item = current_communities.service.read(system_identity, community_id)
     current_communities.service.update(
         system_identity,

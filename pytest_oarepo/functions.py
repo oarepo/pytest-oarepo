@@ -1,7 +1,20 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of pytest-oarepo (see https://github.com/oarepo/pytest_oarepo).
+#
+# pytest-oarepo is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""Util used in testing."""
+
+from __future__ import annotations
+
 from collections import defaultdict
 
-from invenio_users_resources.proxies import current_users_service
 from flask import g
+from invenio_users_resources.proxies import current_users_service
+
 
 # from chatgpt
 def _dict_diff(dict1, dict2, path=""):
@@ -15,9 +28,7 @@ def _dict_diff(dict1, dict2, path=""):
 
         # Check if the key is in the second dictionary
         if key not in dict2:
-            ret["second dict missing"].append(
-                f"{new_path}: Key missing in the second dictionary"
-            )
+            ret["second dict missing"].append(f"{new_path}: Key missing in the second dictionary")
             continue
 
         # If both values are dictionaries, do a recursive call
@@ -35,9 +46,7 @@ def _dict_diff(dict1, dict2, path=""):
                 new_path = key
             else:
                 new_path = f"{path}.{key}"
-            ret["first dict missing"].append(
-                f"{new_path}: Key missing in the first dictionary"
-            )
+            ret["first dict missing"].append(f"{new_path}: Key missing in the first dictionary")
     return ret
 
 
@@ -49,6 +58,7 @@ def is_valid_subdict(subdict, dict_):
 def _index_users():
     current_users_service.indexer.process_bulk_queue()
     current_users_service.indexer.refresh()
+
 
 def clear_babel_context():
     # for invenio 12

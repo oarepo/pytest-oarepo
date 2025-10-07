@@ -1,3 +1,15 @@
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of pytest-oarepo (see https://github.com/oarepo/pytest_oarepo).
+#
+# pytest-oarepo is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""Fixtures for creating test users."""
+
+from __future__ import annotations
+
 import base64
 import os
 
@@ -27,7 +39,6 @@ def _create_user(user_fixture, app, db) -> None:
 
 @pytest.fixture
 def users(app, db, UserFixture, password):
-
     """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",
@@ -92,7 +103,7 @@ def users(app, db, UserFixture, password):
         preferences={
             "timezone": "America/Mexico_City",  # something without daylight saving time
             "locale": "en",
-            "visibility": "public"
+            "visibility": "public",
         },
         user_profile={
             "affiliations": "CERN",
@@ -100,7 +111,7 @@ def users(app, db, UserFixture, password):
         active=True,
         confirmed=True,
     )
-    _create_user(user5, app,  db)
+    _create_user(user5, app, db)
 
     db.session.commit()
     _index_users()

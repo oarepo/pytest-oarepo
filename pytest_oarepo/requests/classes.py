@@ -1,23 +1,30 @@
-from functools import cached_property
+#
+# Copyright (c) 2025 CESNET z.s.p.o.
+#
+# This file is a part of pytest-oarepo (see https://github.com/oarepo/pytest_oarepo).
+#
+# pytest-oarepo is free software; you can redistribute it and/or modify it
+# under the terms of the MIT License; see LICENSE file for more details.
+#
+"""Test classes for requests."""
+
+from __future__ import annotations
 
 from flask_principal import UserNeed
+from invenio_accounts.models import User
 from invenio_records_permissions.generators import Generator
 from invenio_requests.customizations import CommentEventType
 from oarepo_workflows.requests.generators import RecipientGeneratorMixin
-from invenio_access.models import User
-from invenio_accounts.models import User
+
 
 class TestEventType(CommentEventType):
-    """
-    Custom EventType.
-    """
+    """Custom EventType."""
+
     type_id = "T"
 
 
 class SystemUserGenerator(RecipientGeneratorMixin, Generator):
-    """
-    Generator primarily used to define system user as recipient of a request.
-    """
+    """Generator primarily used to define system user as recipient of a request."""
 
     def needs(self, **kwargs):
         return [UserNeed("system")]
@@ -25,10 +32,10 @@ class SystemUserGenerator(RecipientGeneratorMixin, Generator):
     def reference_receivers(self, **kwargs):
         return [{"user": "system"}]
 
+
 class UserGenerator(RecipientGeneratorMixin, Generator):
-    """
-    Generator primarily used to define specific user as recipient of a request.
-    """
+    """Generator primarily used to define specific user as recipient of a request."""
+
     def __init__(self, user_email):
         self.user_email = user_email
 
@@ -43,18 +50,15 @@ class UserGenerator(RecipientGeneratorMixin, Generator):
         return [{"user": str(self.user_id)}]
 
 
-
 class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
-    """
-    Generator primarily used to define specific user as recipient of a request.
-    """
+    """Generator primarily used to define specific user as recipient of a request."""
+
     def _get_user_id(self):
         users = User.query.all()
-        users = [user for user in users if "locale" in user.preferences and user.preferences["locale"] == 'cs']
+        users = [user for user in users if "locale" in user.preferences and user.preferences["locale"] == "cs"]
         if users:
             return users[0].id
-        else:
-            raise ValueError("No CS locale user found")
+        raise ValueError("No CS locale user found")
 
     def needs(self, **kwargs):
         return [UserNeed(self._get_user_id())]
