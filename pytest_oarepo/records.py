@@ -82,7 +82,9 @@ def draft_factory(record_service: RecordService, prepare_record_data: PrepareRec
 
         json = prepare_record_data(custom_data, custom_workflow, additional_data)
         draft = record_service.create(identity=identity, data=json, expand=expand, **service_kwargs)
-        return draft.to_dict()  # unified interface
+        # TODO: to_dict() is typed as dict[str, Any] in RecordItem, idk why it complains here
+        # unified interface
+        return draft.to_dict()  # type: ignore[no-any-return]
 
     return draft
 
@@ -116,7 +118,7 @@ def record_factory(record_service: RecordService, draft_factory: CreateRecordFn)
             **service_kwargs,
         )
         record = record_service.publish(system_identity, draft["id"], expand=expand)
-        return record.to_dict()  # unified interface
+        return record.to_dict()  # type: ignore[no-any-return]
 
     return record
 
@@ -170,6 +172,6 @@ def record_with_files_factory(
             draft["id"],
             expand=expand,
         )
-        return record.to_dict()
+        return record.to_dict()  # type: ignore[no-any-return]
 
     return record

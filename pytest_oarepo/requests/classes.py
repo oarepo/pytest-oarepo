@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, override
+from typing import TYPE_CHECKING, Any, cast, override
 
 from flask_principal import UserNeed
 from invenio_accounts.models import User
@@ -51,7 +51,8 @@ class UserGenerator(RecipientGeneratorMixin, Generator):
 
     @property
     def _user_id(self) -> int:
-        return User.query.filter_by(email=self.user_email).one().id
+        # id is Integer column
+        return cast("int", User.query.filter_by(email=self.user_email).one().id)
 
     @override
     def needs(self, **kwargs: Any) -> Collection[Need]:
@@ -70,7 +71,7 @@ class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
         users = User.query.all()
         users = [user for user in users if "locale" in user.preferences and user.preferences["locale"] == "cs"]
         if users:
-            return users[0].id
+            return cast("int", users[0].id)
         raise ValueError("No CS locale user found")
 
     @override

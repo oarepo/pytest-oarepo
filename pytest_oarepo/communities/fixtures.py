@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
-from invenio_communities.cli import create_communities_custom_field
 from invenio_communities.communities.records.api import Community
 from invenio_communities.proxies import current_communities
 from invenio_pidstore.errors import PIDDoesNotExistError
@@ -54,14 +53,15 @@ def minimal_community() -> dict[str, Any]:
     }
 
 
+"""
 # TODO: scrap?
 @pytest.fixture
 def init_communities_cf(app: Flask, cache: Any) -> None:  # noqa ARG001
-    """Initialize oarepo custom fields including community specific ones."""
     result = app.test_cli_runner().invoke(create_communities_custom_field, [])
     if result.exit_code != 0:
         raise RuntimeError(f"Failed to initialize communities custom fields: {result.output}")
     Community.index.refresh()
+"""
 
 
 @pytest.fixture

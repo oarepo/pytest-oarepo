@@ -17,6 +17,7 @@ import pytest
 
 if TYPE_CHECKING:
     from flask_principal import Identity
+    from invenio_records_resources.services.files.results import FileItem
     from invenio_records_resources.services.files.service import FileService
 
 
@@ -30,7 +31,7 @@ class UploadFileFn(Protocol):
         files_service: FileService,
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
-    ) -> dict[str, Any]:
+    ) -> FileItem:
         """Upload a file to a record."""
 
 
@@ -50,7 +51,7 @@ def upload_file(file_metadata: dict[str, Any]) -> UploadFileFn:
         files_service: FileService,
         file_name: str = "test.pdf",
         custom_file_metadata: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+    ) -> FileItem:
         """Upload a default file to a record.
 
         :param identity: Identity of the requester.

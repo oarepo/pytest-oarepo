@@ -79,7 +79,7 @@ def draft_with_community_factory(
             expand=expand,
             **service_kwargs,
         )
-        return draft.to_dict()
+        return draft.to_dict()  # type: ignore[no-any-return]
 
     return record
 
@@ -122,6 +122,6 @@ def published_record_with_community_factory(
             **service_kwargs,
         )
         record = record_service.publish(system_identity, draft["id"], expand=expand)
-        return record.to_dict()
+        return record.to_dict()  # type: ignore[no-any-return]
 
     return _published_record_with_community

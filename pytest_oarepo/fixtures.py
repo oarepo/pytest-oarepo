@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 @pytest.fixture(scope="module")
 def create_app(instance_path: str, entry_points: Generator[None]) -> Callable[..., Flask]:  # noqa: ARG001
     """Application factory fixture."""
-    return create_api
+    return create_api  # type: ignore [no-any-return]
 
 
 @pytest.fixture
