@@ -10,11 +10,19 @@
 
 from __future__ import annotations
 
+from typing import Any, override, TYPE_CHECKING
+
 from flask_principal import UserNeed
 from invenio_accounts.models import User
-from invenio_records_permissions.generators import Generator
 from invenio_requests.customizations import CommentEventType
+from oarepo_runtime.services.generators import Generator
+from oarepo_runtime.typing import require_kwargs
 from oarepo_workflows.requests.generators import RecipientGeneratorMixin
+
+if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
+    from flask_principal import Need
+
 
 
 class TestEventType(CommentEventType):
@@ -26,42 +34,51 @@ class TestEventType(CommentEventType):
 class SystemUserGenerator(RecipientGeneratorMixin, Generator):
     """Generator primarily used to define system user as recipient of a request."""
 
-    def needs(self, **kwargs):
+    @override
+    def needs(self, **kwargs: Any)-> Collection[Need]:
         return [UserNeed("system")]
 
-    def reference_receivers(self, **kwargs):
+    @override
+    def reference_receivers(self, **kwargs: Any)-> list[Mapping[str, str]]:
         return [{"user": "system"}]
 
 
 class UserGenerator(RecipientGeneratorMixin, Generator):
     """Generator primarily used to define specific user as recipient of a request."""
 
+    @override
+    @require_kwargs("user_email")
     def __init__(self, user_email):
         self.user_email = user_email
 
     @property
-    def user_id(self):
+    def _user_id(self):
         return User.query.filter_by(email=self.user_email).one().id
 
-    def needs(self, **kwargs):
-        return [UserNeed(self.user_id)]
+    @override
+    def needs(self, **kwargs: Any)-> Collection[Need]:
+        return [UserNeed(self._user_id)]
 
-    def reference_receivers(self, **kwargs):
-        return [{"user": str(self.user_id)}]
+    @override
+    def reference_receivers(self, **kwargs: Any)-> list[Mapping[str, str]]:
+        return [{"user": str(self._user_id)}]
 
 
 class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
     """Generator primarily used to define specific user as recipient of a request."""
 
-    def _get_user_id(self):
+    @property
+    def _user_id(self):
         users = User.query.all()
         users = [user for user in users if "locale" in user.preferences and user.preferences["locale"] == "cs"]
         if users:
             return users[0].id
         raise ValueError("No CS locale user found")
 
-    def needs(self, **kwargs):
-        return [UserNeed(self._get_user_id())]
+    @override
+    def needs(self, **kwargs: Any)-> Collection[Need]:
+        return [UserNeed(self._user_id)]
 
-    def reference_receivers(self, **kwargs):
-        return [{"user": str(self._get_user_id())}]
+    @override
+    def reference_receivers(self, **kwargs: Any)-> list[Mapping[str, str]]:
+        return [{"user": str(self._user_id)}]

@@ -15,6 +15,8 @@ import os
 from typing import TYPE_CHECKING
 
 import pytest
+from flask import Flask
+from pytest_invenio.user import UserFixtureBase
 from sqlalchemy.exc import IntegrityError
 
 from pytest_oarepo.functions import _index_users
@@ -24,12 +26,12 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def password():
-    """Password fixture."""
+def password()->str:
+    """Return password."""
     return base64.b64encode(os.urandom(16)).decode("utf-8")
 
 
-def _create_user(user_fixture, app, db: SQLAlchemy) -> None:
+def _create_user(user_fixture: UserFixtureBase, app: Flask, db: SQLAlchemy) -> None:
     """Create users, reusing it if it already exists."""
     try:
         user_fixture.create(app, db)
@@ -42,7 +44,7 @@ def _create_user(user_fixture, app, db: SQLAlchemy) -> None:
 
 
 @pytest.fixture
-def users(app, db: SQLAlchemy, UserFixture, password):
+def users(app: Flask, db: SQLAlchemy, UserFixture: type[UserFixtureBase], password: str)->list[UserFixtureBase]:
     """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",
@@ -124,11 +126,11 @@ def users(app, db: SQLAlchemy, UserFixture, password):
 
 @pytest.fixture
 def user_with_cs_locale(
-    app, db, users, UserFixture, password
-):  # adding to users would cause backward compatibility issues; problem - can't enforce consistent id once more users added to users
+    app: Flask, db: SQLAlchemy, UserFixture: type[UserFixtureBase], password: str
+)->UserFixtureBase:
     u = UserFixture(
         email="pat@mat.cz",
-        password=password,  # NOSONAR
+        password=password,
         username="patmat",
         user_profile={
             "full_name": "patmat",

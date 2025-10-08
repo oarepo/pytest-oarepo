@@ -10,23 +10,57 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Protocol
+
 import pytest
 from invenio_access.permissions import system_identity
 
+if TYPE_CHECKING:
+    from flask_principal import Identity
+    from invenio_records_resources.services import RecordService
+    from invenio_records_resources.services.records.results import (
+        RecordItem,
+        RecordList,
+    )
+
+class CreateRecordFn(Protocol):
+    def __call__(
+        self,
+        identity: Identity,
+        custom_data: dict[str, Any] | None = ...,
+        additional_data: dict[str, Any] | None = ...,
+        custom_workflow: str | None = ...,
+        expand: bool | None = ...,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]: ...
+
+class CreateRecordWithFilesFn(Protocol):
+    def __call__(
+        self,
+        identity: Identity,
+        custom_data: dict[str, Any] | None = ...,
+        additional_data: dict[str, Any] | None = ...,
+        custom_workflow: str | None = ...,
+        expand: bool | None = ...,
+        file_name: str = ...,
+        custom_file_metadata: dict[str, Any] | None = ...,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]: ...
 
 @pytest.fixture
-def draft_factory(record_service, prepare_record_data):
+def draft_factory(record_service: RecordService, prepare_record_data) -> CreateRecordFn:
     """Call to instance a draft."""
 
     def draft(
-        identity,
-        custom_data=None,
-        additional_data=None,
-        custom_workflow=None,
-        expand=None,
-        **service_kwargs,
-    ):
+        identity: "Identity",
+        custom_data: dict[str, Any] | None = None,
+        additional_data: dict[str, Any] | None = None,
+        custom_workflow: str | None = None,
+        expand: bool | None = None,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]:
         """Create instance of a draft.
+
         :param identity: Identity of the caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
@@ -46,18 +80,19 @@ def draft_factory(record_service, prepare_record_data):
 
 
 @pytest.fixture
-def record_factory(record_service, draft_factory):
+def record_factory(record_service: "RecordService", draft_factory: CreateRecordFn) -> CreateRecordFn:
     """Call to instance a published record."""
 
     def record(
-        identity,
-        custom_data=None,
-        additional_data=None,
-        custom_workflow=None,
-        expand=None,
-        **service_kwargs,
-    ):
+        identity: "Identity",
+        custom_data: dict[str, Any] | None = None,
+        additional_data: dict[str, Any] | None = None,
+        custom_workflow: str | None = None,
+        expand: bool | None = None,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]:
         """Create instance of a published record.
+
         :param identity: Identity of the caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.
@@ -79,20 +114,26 @@ def record_factory(record_service, draft_factory):
 
 
 @pytest.fixture
-def record_with_files_factory(record_service, draft_factory, default_record_with_workflow_json, upload_file):
+def record_with_files_factory(
+    record_service: "RecordService",
+    draft_factory: CreateRecordFn,
+    default_record_with_workflow_json: dict[str, Any],
+    upload_file,
+) -> CreateRecordWithFilesFn:
     """Call to instance a published record with a file."""
 
     def record(
-        identity,
-        custom_data=None,
-        additional_data=None,
-        custom_workflow=None,
-        expand=None,
-        file_name="test.pdf",
-        custom_file_metadata=None,
-        **service_kwargs,
-    ):
+        identity: "Identity",
+        custom_data: dict[str, Any] | None = None,
+        additional_data: dict[str, Any] | None = None,
+        custom_workflow: str | None = None,
+        expand: bool | None = None,
+        file_name: str = "test.pdf",
+        custom_file_metadata: dict[str, Any] | None = None,  # kept for API parity
+        **service_kwargs: Any,
+    ) -> dict[str, Any]:
         """Create instance of a published record.
+
         :param identity: Identity of tha caller.
         :param custom_data: If defined, the default record data are overwritten.
         :param additional_data: If defined, the additional data are merged with the default data.

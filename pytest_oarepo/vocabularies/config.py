@@ -15,9 +15,10 @@ from oarepo_runtime.services.config.permissions_presets import EveryonePermissio
 from oarepo_vocabularies.services.config import VocabulariesConfig
 from oarepo_vocabularies.services.permissions import NonDangerousVocabularyOperation
 
-
+# TODO: this should have been chnged in new RDM?
+"""
 class FineGrainedPermissionPolicy(EveryonePermissionPolicy):
-    can_create_removalreasons = [SystemProcess(), AnyUser()]
+    can_create_removalreasons = (SystemProcess(), AnyUser()]
     can_update_removalreasons = [
         SystemProcess(),
         NonDangerousVocabularyOperation(AnyUser()),
@@ -30,3 +31,4 @@ VOCABULARIES_TEST_CONFIG = {
     "OAREPO_PERMISSIONS_PRESETS": {"fine-grained": FineGrainedPermissionPolicy},
     "VOCABULARIES_SERVICE_CONFIG": VocabulariesConfig,
 }
+"""
