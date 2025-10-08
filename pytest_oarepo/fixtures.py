@@ -20,7 +20,7 @@ from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
     from flask import Flask
     from flask.testing import FlaskClient
@@ -29,18 +29,21 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture(scope="module")
-def create_app(instance_path, entry_points) -> Callable[..., Flask]:  # type: ignore[override]
+def create_app(instance_path: str, entry_points: Generator[None]) -> Callable[..., Flask]:  # noqa: ARG001
     """Application factory fixture."""
     return create_api
 
 
 @pytest.fixture
 def host() -> str:
+    """Return host url."""
     return "https://127.0.0.1:5000/"
 
 
 @pytest.fixture
 def link2testclient(host: str) -> Callable[[str, bool], str]:
+    """Convert link to testclient link."""
+
     def _link2testclient(link: str, ui: bool = False) -> str:
         base_string = f"{host}api/" if not ui else host
         return link[len(base_string) - 1 :]
@@ -74,13 +77,16 @@ def default_record_with_workflow_json(default_record_json: dict[str, Any]) -> di
 
 
 class PrepareRecordDataFn(Protocol):
+    """Protocol for prepare_record_data fixture."""
+
     def __call__(
         self,
         custom_data: dict[str, Any] | None = ...,
         custom_workflow: str | None = ...,
         additional_data: dict[str, Any] | None = ...,
         add_default_workflow: bool = ...,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Call to merge input definitions into data passed to record service."""
 
 
 @pytest.fixture
@@ -97,8 +103,8 @@ def prepare_record_data(default_record_json: dict[str, Any]) -> PrepareRecordDat
 
         :param custom_workflow: If user wants to use different workflow that the default one.
         :param additional_data: Additional data beyond the defaults that should be put into the service.
-        :param add_default_workflow: Allows user to to pass data into the service without workflow - this might be useful for example
-        in case of wanting to use community default workflow.
+        :param add_default_workflow: Allows user to to pass data into the service without workflow -
+        this might be useful for example in case of wanting to use community default workflow.
         """
         record_json = custom_data if custom_data else default_record_json
         json = copy.deepcopy(record_json)
@@ -124,8 +130,11 @@ def vocab_cf(app: Flask, db: SQLAlchemy, cache) -> None:
 
 
 class LoggedClient:
-    # TODO - using the different clients thing?
+    """Logged client."""
+
+    # TODO: - using the different clients thing?
     def __init__(self, client: FlaskClient, user_fixture: UserFixtureBase):
+        """Initialize the logged client."""
         self.client: FlaskClient = client
         self.user_fixture: UserFixtureBase = user_fixture
 
@@ -134,28 +143,30 @@ class LoggedClient:
         login_user_via_session(self.client, email=self.user_fixture.email)
 
     def post(self, *args: Any, **kwargs: Any) -> TestResponse:
+        """Execute POST request."""
         self._login()
         return self.client.post(*args, **kwargs)
 
     def get(self, *args: Any, **kwargs: Any) -> TestResponse:
+        """Execute GET request."""
         self._login()
         return self.client.get(*args, **kwargs)
 
     def put(self, *args: Any, **kwargs: Any) -> TestResponse:
+        """Execute PUT request."""
         self._login()
         return self.client.put(*args, **kwargs)
 
     def delete(self, *args: Any, **kwargs: Any) -> TestResponse:
+        """Execute DELETE request."""
         self._login()
         return self.client.delete(*args, **kwargs)
 
 
-class LoggedClientFactory(Protocol):
-    def __call__(self, user: UserFixtureBase) -> LoggedClient: ...
-
-
 @pytest.fixture
-def logged_client(client: FlaskClient) -> LoggedClientFactory:
+def logged_client(client: FlaskClient) -> Callable[[UserFixtureBase], LoggedClient]:
+    """Return logged client."""
+
     def _logged_client(user: UserFixtureBase) -> LoggedClient:
         return LoggedClient(client, user)
 

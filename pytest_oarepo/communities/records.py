@@ -17,13 +17,17 @@ from invenio_access.permissions import system_identity
 
 if TYPE_CHECKING:
     from flask_principal import Identity
-    from invenio_records_resources.services import RecordService
-    from invenio_records_resources.services.records.results import RecordItem, RecordList
+    from invenio_drafts_resources.services import RecordService
+
+    from pytest_oarepo.fixtures import PrepareRecordDataFn
+
 
 class CreateCommunityRecordFn(Protocol):
-    def __call__(
+    """Callable to create a record in a community."""
+
+    def __call__(  # noqa PLR0913
         self,
-        identity: "Identity",
+        identity: Identity,
         community_id: str,
         model_schema: str | None = ...,
         custom_data: dict[str, Any] | None = ...,
@@ -31,18 +35,20 @@ class CreateCommunityRecordFn(Protocol):
         custom_workflow: str | None = ...,
         expand: bool | None = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Create a record in a community."""
+
 
 @pytest.fixture
 def draft_with_community_factory(
-    community_records_service: "RecordService",
+    community_records_service: RecordService,  # TODO: resolve correct service type
     base_model_schema: str,
-    prepare_record_data,
+    prepare_record_data: PrepareRecordDataFn,
 ) -> CreateCommunityRecordFn:
     """Call to instance draft in a community."""
 
-    def record(
-        identity: "Identity",
+    def record(  # noqa PLR0913
+        identity: Identity,
         community_id: str,
         model_schema: str | None = None,
         custom_data: dict[str, Any] | None = None,
@@ -77,15 +83,16 @@ def draft_with_community_factory(
 
     return record
 
+
 @pytest.fixture
 def published_record_with_community_factory(
-    record_service: "RecordService", # TODO: correct type
+    record_service: RecordService,
     draft_with_community_factory: CreateCommunityRecordFn,
 ) -> CreateCommunityRecordFn:
     """Call to instance published record in a community."""
 
-    def _published_record_with_community(
-        identity: "Identity",
+    def _published_record_with_community(  # noqa PLR0913
+        identity: Identity,
         community_id: str,
         model_schema: str | None = None,
         custom_data: dict[str, Any] | None = None,

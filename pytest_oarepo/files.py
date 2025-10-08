@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 
 
 class UploadFileFn(Protocol):
+    """Callable to upload a file to a record."""
+
     def __call__(
         self,
         identity: Identity,
@@ -28,16 +30,20 @@ class UploadFileFn(Protocol):
         files_service: FileService,
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Upload a file to a record."""
 
 
 @pytest.fixture
 def file_metadata() -> dict[str, Any]:
+    """Return default file metadata."""
     return {"title": "Test file"}
 
 
 @pytest.fixture
 def upload_file(file_metadata: dict[str, Any]) -> UploadFileFn:
+    """Fixture to upload a file to a record."""
+
     def _upload_file(
         identity: Identity,
         record_id: str,

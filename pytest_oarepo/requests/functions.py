@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def get_request_type(request_types_json: list[dict[str, Any]], request_type: str)->dict[str, Any] | None:
+def get_request_type(request_types_json: list[dict[str, Any]], request_type: str) -> dict[str, Any] | None:
     """Get request type from request types json."""
     selected_entry = [entry for entry in request_types_json if entry["type_id"] == request_type]
     if not selected_entry:

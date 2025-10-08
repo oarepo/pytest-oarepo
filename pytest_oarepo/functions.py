@@ -16,10 +16,9 @@ from flask import g
 from invenio_users_resources.proxies import current_users_service
 
 
-
 def _dict_diff(dict1: dict, dict2: dict, path: str = "") -> dict[str, list[str]]:
     ret = defaultdict(list)
-    for key in dict1:
+    for key in dict1:  # noqa PLC0206
         # Construct path to current element
         new_path = key if path == "" else f"{path}.{key}"
 
@@ -43,8 +42,10 @@ def _dict_diff(dict1: dict, dict2: dict, path: str = "") -> dict[str, list[str]]
             ret["first dict missing"].append(f"{new_path}: Key missing in the first dictionary")
     return ret
 
+
 # TODO: scrap?
 def is_valid_subdict(subdict: dict, dict_: dict) -> bool:
+    """Check if subdict is a valid subdict of dict."""
     diff = _dict_diff(subdict, dict_)
     return "different values" not in diff and "second dict missing" not in diff
 
@@ -54,11 +55,13 @@ def _index_users() -> None:
     current_users_service.indexer.process_bulk_queue()
     current_users_service.indexer.refresh()
 
+
 # TODO: scrap?
 def clear_babel_context() -> None:
+    """Clear babel context."""
     # for invenio 12
     try:
         from flask_babel import SimpleNamespace
     except ImportError:
         return
-    g._flask_babel = SimpleNamespace()
+    g._flask_babel = SimpleNamespace()  # noqa: SLF001

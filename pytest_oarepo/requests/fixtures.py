@@ -43,7 +43,9 @@ can_comment_only_receiver = [
 
 
 class CreateRequestFn(Protocol):
-    def __call__(
+    """Callable to create a request on a topic record."""
+
+    def __call__(  # noqa PLR0913
         self,
         identity: Identity,
         id_: str,
@@ -52,10 +54,13 @@ class CreateRequestFn(Protocol):
         additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
         **request_kwargs: Any,
-    ) -> RequestItem: ...
+    ) -> RequestItem:
+        """Create request of specific type on a specific record."""
 
 
 class CreateRequestOnTopicFn(Protocol):
+    """Callable to create a request on a record."""
+
     def __call__(
         self,
         identity: Identity,
@@ -64,11 +69,14 @@ class CreateRequestOnTopicFn(Protocol):
         additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
         **request_kwargs: Any,
-    ) -> RequestItem: ...
+    ) -> RequestItem:
+        """Create request of specific type on a specific record."""
 
 
 class SubmitRequestFn(Protocol):
-    def __call__(
+    """Callable to create and submit a request on a topic record."""
+
+    def __call__(  # noqa PLR0913
         self,
         identity: Identity,
         topic_id: str,
@@ -76,7 +84,8 @@ class SubmitRequestFn(Protocol):
         create_additional_data: dict[str, Any] | None = ...,
         submit_additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
-    ) -> RequestItem: ...
+    ) -> RequestItem:
+        """Create and submit request of specific type on a specific record."""
 
 
 @pytest.fixture(scope="module")

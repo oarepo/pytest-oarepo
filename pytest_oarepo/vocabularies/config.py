@@ -10,11 +10,6 @@
 
 from __future__ import annotations
 
-from invenio_records_permissions.generators import AnyUser, SystemProcess
-from oarepo_runtime.services.config.permissions_presets import EveryonePermissionPolicy
-from oarepo_vocabularies.services.config import VocabulariesConfig
-from oarepo_vocabularies.services.permissions import NonDangerousVocabularyOperation
-
 # TODO: this should have been chnged in new RDM?
 """
 class FineGrainedPermissionPolicy(EveryonePermissionPolicy):
