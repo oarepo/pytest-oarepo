@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import pytest
 
@@ -31,7 +31,7 @@ class UploadFileFn(Protocol):
         files_service: FileService,
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
-    ) -> FileItem:
+    ) -> FileItem:  # type: ignore[reportReturnType]
         """Upload a file to a record."""
 
 
@@ -69,6 +69,6 @@ def upload_file(file_metadata: dict[str, Any]) -> UploadFileFn:
             ],
         )
         files_service.set_file_content(identity, record_id, file_name, stream=BytesIO(b"testfile"))
-        return files_service.commit_file(identity, record_id, file_name)
+        return cast("FileItem", files_service.commit_file(identity, record_id, file_name))
 
     return _upload_file

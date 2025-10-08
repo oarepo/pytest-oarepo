@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
 
     from flask_principal import Need
+    from invenio_records_resources.records import Record
+    from invenio_requests.customizations import RequestType
 
 
 class TestEventType(CommentEventType):
@@ -38,7 +40,12 @@ class SystemUserGenerator(RecipientGeneratorMixin, Generator):
         return [UserNeed("system")]
 
     @override
-    def reference_receivers(self, **kwargs: Any) -> list[Mapping[str, str]]:
+    def reference_receivers(
+        self,
+        record: Record | None = None,
+        request_type: RequestType | None = None,
+        **context: Any,
+    ) -> list[Mapping[str, str]]:
         return [{"user": "system"}]
 
 
@@ -59,7 +66,12 @@ class UserGenerator(RecipientGeneratorMixin, Generator):
         return [UserNeed(self._user_id)]
 
     @override
-    def reference_receivers(self, **kwargs: Any) -> list[Mapping[str, str]]:
+    def reference_receivers(
+        self,
+        record: Record | None = None,
+        request_type: RequestType | None = None,
+        **context: Any,
+    ) -> list[Mapping[str, str]]:
         return [{"user": str(self._user_id)}]
 
 
@@ -79,5 +91,10 @@ class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
         return [UserNeed(self._user_id)]
 
     @override
-    def reference_receivers(self, **kwargs: Any) -> list[Mapping[str, str]]:
+    def reference_receivers(
+        self,
+        record: Record | None = None,
+        request_type: RequestType | None = None,
+        **context: Any,
+    ) -> list[Mapping[str, str]]:
         return [{"user": str(self._user_id)}]
