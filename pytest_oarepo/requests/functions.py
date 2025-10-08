@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 
 def get_request_type(request_types_json: list[dict[str, Any]], request_type: str) -> dict[str, Any] | None:
@@ -26,4 +26,4 @@ def get_request_create_link(request_types_json: list[dict[str, Any]], request_ty
     selected_entry = get_request_type(request_types_json, request_type)
     if not selected_entry:
         raise ValueError(f"Request type {request_type} not found in request types")
-    return selected_entry["links"]["actions"]["create"]
+    return cast("str", selected_entry["links"]["actions"]["create"])
