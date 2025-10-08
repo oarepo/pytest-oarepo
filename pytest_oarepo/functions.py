@@ -21,10 +21,7 @@ def _dict_diff(dict1, dict2, path=""):
     ret = defaultdict(list)
     for key in dict1:
         # Construct path to current element
-        if path == "":
-            new_path = key
-        else:
-            new_path = f"{path}.{key}"
+        new_path = key if path == "" else f"{path}.{key}"
 
         # Check if the key is in the second dictionary
         if key not in dict2:
@@ -42,10 +39,7 @@ def _dict_diff(dict1, dict2, path=""):
     # Check for keys in the second dictionary but not in the first
     for key in dict2:
         if key not in dict1:
-            if path == "":
-                new_path = key
-            else:
-                new_path = f"{path}.{key}"
+            new_path = key if path == "" else f"{path}.{key}"
             ret["first dict missing"].append(f"{new_path}: Key missing in the first dictionary")
     return ret
 
@@ -55,12 +49,12 @@ def is_valid_subdict(subdict, dict_):
     return "different values" not in diff and "second dict missing" not in diff
 
 
-def _index_users():
+def _index_users() -> None:
     current_users_service.indexer.process_bulk_queue()
     current_users_service.indexer.refresh()
 
 
-def clear_babel_context():
+def clear_babel_context() -> None:
     # for invenio 12
     try:
         from flask_babel import SimpleNamespace
