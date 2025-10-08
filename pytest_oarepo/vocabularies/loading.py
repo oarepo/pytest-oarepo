@@ -23,7 +23,9 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def test_vocabularies() -> None:
+    """Load test vocabularies."""
     class ErrCallback(FixturesCallback):
+        """Callback that ignores failed entries."""
         def batch_finished(self, batch: StreamBatch) -> None:
             if batch.failed_entries:
                 pass

@@ -10,25 +10,49 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Protocol
+
 import pytest
 from invenio_access.permissions import system_identity
 
+if TYPE_CHECKING:
+    from flask_principal import Identity
+    from invenio_records_resources.services import RecordService
+    from invenio_records_resources.services.records.results import RecordItem, RecordList
+
+class CreateCommunityRecordFn(Protocol):
+    def __call__(
+        self,
+        identity: "Identity",
+        community_id: str,
+        model_schema: str | None = ...,
+        custom_data: dict[str, Any] | None = ...,
+        additional_data: dict[str, Any] | None = ...,
+        custom_workflow: str | None = ...,
+        expand: bool | None = ...,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]: ...
 
 @pytest.fixture
-def draft_with_community_factory(community_records_service, base_model_schema, prepare_record_data):
+def draft_with_community_factory(
+    community_records_service: "RecordService",
+    base_model_schema: str,
+    prepare_record_data,
+) -> CreateCommunityRecordFn:
     """Call to instance draft in a community."""
 
     def record(
-        identity,
-        community_id,
-        model_schema=None,
-        custom_data=None,
-        additional_data=None,
-        custom_workflow=None,
-        expand=None,
-        **service_kwargs,
-    ):
+        identity: "Identity",
+        community_id: str,
+        model_schema: str | None = None,
+        custom_data: dict[str, Any] | None = None,
+        additional_data: dict[str, Any] | None = None,
+        custom_workflow: str | None = None,
+        expand: bool | None = None,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]:
         """Create instance of a draft in a community.
+
         :param identity: Identity of the caller.
         :param community_id: ID of the community.
         :param model_schema: Optional model schema if using different than defined in base_model_schema fixture.
@@ -53,22 +77,25 @@ def draft_with_community_factory(community_records_service, base_model_schema, p
 
     return record
 
-
 @pytest.fixture
-def published_record_with_community_factory(record_service, draft_with_community_factory):
+def published_record_with_community_factory(
+    record_service: "RecordService", # TODO: correct type
+    draft_with_community_factory: CreateCommunityRecordFn,
+) -> CreateCommunityRecordFn:
     """Call to instance published record in a community."""
 
     def _published_record_with_community(
-        identity,
-        community_id,
-        model_schema=None,
-        custom_data=None,
-        additional_data=None,
-        custom_workflow=None,
-        expand=None,
-        **service_kwargs,
-    ):
+        identity: "Identity",
+        community_id: str,
+        model_schema: str | None = None,
+        custom_data: dict[str, Any] | None = None,
+        additional_data: dict[str, Any] | None = None,
+        custom_workflow: str | None = None,
+        expand: bool | None = None,
+        **service_kwargs: Any,
+    ) -> dict[str, Any]:
         """Create instance of a published record in a community.
+
         :param identity: Identity of the caller.
         :param community_id: ID of the community.
         :param model_schema: Optional model schema if using different than defined in base_model_schema fixture.

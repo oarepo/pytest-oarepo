@@ -16,8 +16,8 @@ from flask import g
 from invenio_users_resources.proxies import current_users_service
 
 
-# from chatgpt
-def _dict_diff(dict1, dict2, path=""):
+
+def _dict_diff(dict1: dict, dict2: dict, path: str = "") -> dict[str, list[str]]:
     ret = defaultdict(list)
     for key in dict1:
         # Construct path to current element
@@ -43,17 +43,18 @@ def _dict_diff(dict1, dict2, path=""):
             ret["first dict missing"].append(f"{new_path}: Key missing in the first dictionary")
     return ret
 
-
-def is_valid_subdict(subdict, dict_):
+# TODO: scrap?
+def is_valid_subdict(subdict: dict, dict_: dict) -> bool:
     diff = _dict_diff(subdict, dict_)
     return "different values" not in diff and "second dict missing" not in diff
 
 
 def _index_users() -> None:
+    """Index users."""
     current_users_service.indexer.process_bulk_queue()
     current_users_service.indexer.refresh()
 
-
+# TODO: scrap?
 def clear_babel_context() -> None:
     # for invenio 12
     try:

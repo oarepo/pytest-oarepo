@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 
 import pytest
 from deepmerge import always_merger
@@ -40,6 +40,43 @@ can_comment_only_receiver = [
     Receiver(),
     SystemProcess(),
 ]
+
+
+class CreateRequestFn(Protocol):
+    def __call__(
+        self,
+        identity: Identity,
+        id_: str,
+        request_type: str,
+        topic_read_method: Literal["read", "read_draft"],
+        additional_data: dict[str, Any] | None = ...,
+        expand: bool = ...,
+        **request_kwargs: Any,
+    ) -> RequestItem: ...
+
+
+class CreateRequestOnTopicFn(Protocol):
+    def __call__(
+        self,
+        identity: Identity,
+        topic_id: str,
+        request_type: str,
+        additional_data: dict[str, Any] | None = ...,
+        expand: bool = ...,
+        **request_kwargs: Any,
+    ) -> RequestItem: ...
+
+
+class SubmitRequestFn(Protocol):
+    def __call__(
+        self,
+        identity: Identity,
+        topic_id: str,
+        request_type: str,
+        create_additional_data: dict[str, Any] | None = ...,
+        submit_additional_data: dict[str, Any] | None = ...,
+        expand: bool = ...,
+    ) -> RequestItem: ...
 
 
 @pytest.fixture(scope="module")
@@ -125,7 +162,7 @@ def request_type_additional_data() -> dict[str, Any]:
 @pytest.fixture
 def create_request(
     request_type_additional_data: dict[str, Any], record_service: RecordService, requests_service: RequestsService
-) -> Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem]:
+) -> CreateRequestFn:
     """Return base function for creating a request."""
 
     def _create_request(  # noqa PLR0913
@@ -169,8 +206,8 @@ def create_request(
 
 @pytest.fixture
 def create_request_on_draft(
-    create_request: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
-) -> Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem]:
+    create_request: CreateRequestFn,
+) -> CreateRequestOnTopicFn:
     """Fixture for creating a request on a draft."""
 
     def _create(
@@ -205,8 +242,8 @@ def create_request_on_draft(
 
 @pytest.fixture
 def create_request_on_record(
-    create_request: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
-) -> Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem]:
+    create_request: CreateRequestFn,
+) -> CreateRequestOnTopicFn:
     """Fixture for creating a request on a published record."""
 
     def _create(
@@ -241,9 +278,9 @@ def create_request_on_record(
 
 @pytest.fixture
 def submit_request_on_draft(
-    create_request_on_draft: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+    create_request_on_draft: CreateRequestOnTopicFn,
     requests_service: RequestsService,
-) -> Callable[[Identity, str, str, dict[str, Any] | None, dict[str, Any] | None, bool], RequestItem]:
+) -> SubmitRequestFn:
     """Fixture for creating and submitting request on a draft in one call."""
 
     def _submit_request(  # noqa PLR0913
@@ -280,9 +317,9 @@ def submit_request_on_draft(
 
 @pytest.fixture
 def submit_request_on_record(
-    create_request_on_record: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+    create_request_on_record: CreateRequestOnTopicFn,
     requests_service: RequestsService,
-) -> Callable[[Identity, str, str, dict[str, Any] | None, dict[str, Any] | None, bool], RequestItem]:
+) -> SubmitRequestFn:
     """Fixture for creating and submitting request on a published record in one call."""
 
     def _submit_request(  # noqa PLR0913

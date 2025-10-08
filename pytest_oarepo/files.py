@@ -11,25 +11,42 @@
 from __future__ import annotations
 
 from io import BytesIO
+from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
 
+if TYPE_CHECKING:
+    from flask_principal import Identity
+    from invenio_records_resources.services.files.service import FileService
+
+
+class UploadFileFn(Protocol):
+    def __call__(
+        self,
+        identity: Identity,
+        record_id: str,
+        files_service: FileService,
+        file_name: str = ...,
+        custom_file_metadata: dict[str, Any] | None = ...,
+    ) -> dict[str, Any]: ...
+
 
 @pytest.fixture
-def file_metadata():
+def file_metadata() -> dict[str, Any]:
     return {"title": "Test file"}
 
 
 @pytest.fixture
-def upload_file(file_metadata):
+def upload_file(file_metadata: dict[str, Any]) -> UploadFileFn:
     def _upload_file(
-        identity,
-        record_id,
-        files_service,
-        file_name="test.pdf",
-        custom_file_metadata=None,
-    ):
-        """Uploads a default file to a record.
+        identity: Identity,
+        record_id: str,
+        files_service: FileService,
+        file_name: str = "test.pdf",
+        custom_file_metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Upload a default file to a record.
+
         :param identity: Identity of the requester.
         :param record_id: Id of the record to be uploaded on.
         :param files_service: Service to upload the file.

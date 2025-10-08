@@ -12,11 +12,12 @@ from __future__ import annotations
 
 from invenio_access.permissions import system_identity
 from invenio_communities.proxies import current_communities
+from pytest_invenio.user import UserFixtureBase
 
 from pytest_oarepo.functions import _index_users
 
 
-def invite(user_fixture, community_id, role) -> None:
+def invite(user_fixture: UserFixtureBase, community_id: str, role: str) -> None:
     """Add/invite a user to a community with a specific role."""
     invitation_data = {
         "members": [
@@ -33,7 +34,7 @@ def invite(user_fixture, community_id, role) -> None:
     user_fixture._identity = None
 
 
-def remove_member_from_community(user_id, community_id) -> None:
+def remove_member_from_community(user_id: str, community_id: str) -> None:
     """Remove a user from a community."""
     delete_data = {
         "members": [{"type": "user", "id": user_id}],
@@ -41,7 +42,7 @@ def remove_member_from_community(user_id, community_id) -> None:
     current_communities.service.members.delete(system_identity, community_id, delete_data)
 
 
-def set_community_workflow(community_id, workflow="default") -> None:
+def set_community_workflow(community_id: str, workflow="default") -> None:
     """Set default workflow of a community."""
     community_item = current_communities.service.read(system_identity, community_id)
     current_communities.service.update(

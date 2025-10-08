@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
 from deepmerge import always_merger
@@ -18,9 +19,17 @@ from flask_security import login_user
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from flask import Flask
+    from flask.testing import FlaskClient
+    from pytest_invenio.user import UserFixtureBase
+    from werkzeug.test import TestResponse
+
 
 @pytest.fixture(scope="module")
-def create_app(instance_path, entry_points):
+def create_app(instance_path, entry_points) -> Callable[..., Flask]:  # type: ignore[override]
     """Application factory fixture."""
     return create_api
 
@@ -31,8 +40,8 @@ def host() -> str:
 
 
 @pytest.fixture
-def link2testclient(host):
-    def _link2testclient(link, ui=False):
+def link2testclient(host: str) -> Callable[[str, bool], str]:
+    def _link2testclient(link: str, ui: bool = False) -> str:
         base_string = f"{host}api/" if not ui else host
         return link[len(base_string) - 1 :]
 
@@ -40,8 +49,8 @@ def link2testclient(host):
 
 
 @pytest.fixture
-def default_record_json():
-    """Default data for creating a record, without default workflow."""
+def default_record_json() -> dict[str, Any]:
+    """Return default data for creating a record, without default workflow."""
     return {
         "metadata": {
             "creators": [
@@ -56,25 +65,37 @@ def default_record_json():
 
 
 @pytest.fixture
-def default_record_with_workflow_json(default_record_json):
-    """Default data for creating a record."""
+def default_record_with_workflow_json(default_record_json: dict[str, Any]) -> dict[str, Any]:
+    """Return default data for creating a record."""
     return {
         **default_record_json,
         "parent": {"workflow": "default"},
     }
 
 
+class PrepareRecordDataFn(Protocol):
+    def __call__(
+        self,
+        custom_data: dict[str, Any] | None = ...,
+        custom_workflow: str | None = ...,
+        additional_data: dict[str, Any] | None = ...,
+        add_default_workflow: bool = ...,
+    ) -> dict[str, Any]: ...
+
+
 @pytest.fixture
-def prepare_record_data(default_record_json):
-    """Function for merging input definitions into data passed to record service."""
+def prepare_record_data(default_record_json: dict[str, Any]) -> PrepareRecordDataFn:
+    """Merge input definitions into data passed to record service."""
 
     def _merge_record_data(
-        custom_data=None,
-        custom_workflow=None,
-        additional_data=None,
-        add_default_workflow=True,
-    ):
-        """:param custom_workflow: If user wants to use different workflow that the default one.
+        custom_data: dict[str, Any] | None = None,
+        custom_workflow: str | None = None,
+        additional_data: dict[str, Any] | None = None,
+        add_default_workflow: bool = True,
+    ) -> dict[str, Any]:
+        """Merge input definitions into data passed to record service.
+
+        :param custom_workflow: If user wants to use different workflow that the default one.
         :param additional_data: Additional data beyond the defaults that should be put into the service.
         :param add_default_workflow: Allows user to to pass data into the service without workflow - this might be useful for example
         in case of wanting to use community default workflow.
@@ -93,43 +114,49 @@ def prepare_record_data(default_record_json):
     return _merge_record_data
 
 
+"""
 @pytest.fixture
-def vocab_cf(app, db, cache) -> None:
+def vocab_cf(app: Flask, db: SQLAlchemy, cache) -> None:
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
     prepare_cf_indices()
+"""
 
 
 class LoggedClient:
     # TODO - using the different clients thing?
-    def __init__(self, client, user_fixture):
-        self.client = client
-        self.user_fixture = user_fixture
+    def __init__(self, client: FlaskClient, user_fixture: UserFixtureBase):
+        self.client: FlaskClient = client
+        self.user_fixture: UserFixtureBase = user_fixture
 
     def _login(self) -> None:
         login_user(self.user_fixture.user, remember=True)
         login_user_via_session(self.client, email=self.user_fixture.email)
 
-    def post(self, *args, **kwargs):
+    def post(self, *args: Any, **kwargs: Any) -> TestResponse:
         self._login()
         return self.client.post(*args, **kwargs)
 
-    def get(self, *args, **kwargs):
+    def get(self, *args: Any, **kwargs: Any) -> TestResponse:
         self._login()
         return self.client.get(*args, **kwargs)
 
-    def put(self, *args, **kwargs):
+    def put(self, *args: Any, **kwargs: Any) -> TestResponse:
         self._login()
         return self.client.put(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args: Any, **kwargs: Any) -> TestResponse:
         self._login()
         return self.client.delete(*args, **kwargs)
 
 
+class LoggedClientFactory(Protocol):
+    def __call__(self, user: UserFixtureBase) -> LoggedClient: ...
+
+
 @pytest.fixture
-def logged_client(client):
-    def _logged_client(user):
+def logged_client(client: FlaskClient) -> LoggedClientFactory:
+    def _logged_client(user: UserFixtureBase) -> LoggedClient:
         return LoggedClient(client, user)
 
     return _logged_client
