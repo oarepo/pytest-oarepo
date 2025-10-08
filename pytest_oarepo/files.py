@@ -36,7 +36,7 @@ def upload_file(file_metadata):
         :param file_name: Name of the file to be uploaded.
         :param custom_file_metadata: Custom metadata to be uploaded.
         """
-        actual_file_metadata = file_metadata if not custom_file_metadata else custom_file_metadata
+        actual_file_metadata = custom_file_metadata if custom_file_metadata else file_metadata
         files_service.init_files(
             identity,
             record_id,
@@ -45,7 +45,6 @@ def upload_file(file_metadata):
             ],
         )
         files_service.set_file_content(identity, record_id, file_name, stream=BytesIO(b"testfile"))
-        commit = files_service.commit_file(identity, record_id, file_name)
-        return commit
+        return files_service.commit_file(identity, record_id, file_name)
 
     return _upload_file

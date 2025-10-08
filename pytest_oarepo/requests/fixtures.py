@@ -9,29 +9,30 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import pytest
 from deepmerge import always_merger
-from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
 from invenio_records_permissions.generators import SystemProcess
-from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
-from invenio_requests.services.requests import RequestItem
 from invenio_users_resources.proxies import current_groups_service
 from oarepo_requests.proxies import current_requests_service
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from flask import Flask
+    from flask_principal import Identity
     from invenio_db.shared import SQLAlchemy
+    from invenio_records_resources.services import RecordService
     from invenio_requests.services.events.service import RequestEventsService
+    from invenio_requests.services.requests import RequestItem
     from invenio_requests.services.requests.service import RequestsService
     from pytest_invenio.user import UserFixtureBase
 
@@ -181,6 +182,7 @@ def create_request_on_draft(
         **request_kwargs: Any,
     ) -> RequestItem:
         """Create request of specific type on a draft record.
+
         :param identity: Identity of the caller.
         :param topic_id: ID of the topic record.
         :param request_type: Type of the request.
@@ -216,6 +218,7 @@ def create_request_on_record(
         **request_kwargs: Any,
     ) -> RequestItem:
         """Create request of specific type on a published record.
+
         :param identity: Identity of the caller.
         :param topic_id: ID of the topic record.
         :param request_type: Type of the request.
@@ -243,15 +246,16 @@ def submit_request_on_draft(
 ) -> Callable[[Identity, str, str, dict[str, Any] | None, dict[str, Any] | None, bool], RequestItem]:
     """Fixture for creating and submitting request on a draft in one call."""
 
-    def _submit_request(
+    def _submit_request(  # noqa PLR0913
         identity: Identity,
         topic_id: str,
         request_type: str,
         create_additional_data: dict[str, Any] | None = None,
         submit_additional_data: dict[str, Any] | None = None,
         expand: bool = False,
-    ):
-        """Creates and submits request of specific type on a specific record..
+    ) -> RequestItem:
+        """Create and submit request of specific type on a specific record.
+
         :param identity: Identity of tha caller.
         :param topic_id: ID of the topic record.
         :param request_type: Type of the request.
@@ -263,34 +267,34 @@ def submit_request_on_draft(
         create_response = create_request_on_draft(
             identity, topic_id, request_type, additional_data=create_additional_data
         )
-        submit_response = requests_service.execute_action(
+        return requests_service.execute_action(
             identity,
             id_=create_response["id"],
             action="submit",
             data=submit_additional_data,
             expand=expand,
         )
-        return submit_response
 
     return _submit_request
 
 
 @pytest.fixture
 def submit_request_on_record(
-    create_request_on_draft: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+    create_request_on_record: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
     requests_service: RequestsService,
 ) -> Callable[[Identity, str, str, dict[str, Any] | None, dict[str, Any] | None, bool], RequestItem]:
     """Fixture for creating and submitting request on a published record in one call."""
 
-    def _submit_request(
+    def _submit_request(  # noqa PLR0913
         identity: Identity,
         topic_id: str,
         request_type: str,
         create_additional_data: dict[str, Any] | None = None,
         submit_additional_data: dict[str, Any] | None = None,
         expand: bool = False,
-    ):
-        """Creates and submits request of specific type on a specific record..
+    ) -> RequestItem:
+        """Create and submit request of specific type on a specific record.
+
         :param client: Client instance.
         :param record: Record on which the request should be created.
         :param request_type: Which type of request should be created.
@@ -301,13 +305,12 @@ def submit_request_on_record(
         create_response = create_request_on_record(
             identity, topic_id, request_type, additional_data=create_additional_data
         )
-        submit_response = requests_service.execute_action(
+        return requests_service.execute_action(
             identity,
             id_=create_response["id"],
             action="submit",
             data=submit_additional_data,
             expand=expand,
         )
-        return submit_response
 
     return _submit_request

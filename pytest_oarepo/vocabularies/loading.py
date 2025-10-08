@@ -11,19 +11,22 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from invenio_vocabularies.records.api import Vocabulary
-from oarepo_runtime.datastreams import StreamBatch
 from oarepo_runtime.datastreams.fixtures import FixturesCallback, load_fixtures
+
+if TYPE_CHECKING:
+    from oarepo_runtime.datastreams import StreamBatch
 
 
 @pytest.fixture
-def test_vocabularies():
+def test_vocabularies() -> None:
     class ErrCallback(FixturesCallback):
-        def batch_finished(self, batch: StreamBatch):
+        def batch_finished(self, batch: StreamBatch) -> None:
             if batch.failed_entries:
-                print(batch.failed_entries)
+                pass
             super().batch_finished(batch)
 
     callback = ErrCallback()

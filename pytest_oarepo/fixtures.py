@@ -26,7 +26,7 @@ def create_app(instance_path, entry_points):
 
 
 @pytest.fixture
-def host():
+def host() -> str:
     return "https://127.0.0.1:5000/"
 
 
@@ -79,7 +79,7 @@ def prepare_record_data(default_record_json):
         :param add_default_workflow: Allows user to to pass data into the service without workflow - this might be useful for example
         in case of wanting to use community default workflow.
         """
-        record_json = default_record_json if not custom_data else custom_data
+        record_json = custom_data if custom_data else default_record_json
         json = copy.deepcopy(record_json)
         if add_default_workflow:
             always_merger.merge(json, {"parent": {"workflow": "default"}})
@@ -94,7 +94,7 @@ def prepare_record_data(default_record_json):
 
 
 @pytest.fixture
-def vocab_cf(app, db, cache):
+def vocab_cf(app, db, cache) -> None:
     from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
 
     prepare_cf_indices()
@@ -106,7 +106,7 @@ class LoggedClient:
         self.client = client
         self.user_fixture = user_fixture
 
-    def _login(self):
+    def _login(self) -> None:
         login_user(self.user_fixture.user, remember=True)
         login_user_via_session(self.client, email=self.user_fixture.email)
 

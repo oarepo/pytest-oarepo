@@ -51,7 +51,7 @@ def minimal_community() -> dict[str, Any]:
 
 
 @pytest.fixture
-def init_communities_cf(app: Flask, db, cache):
+def init_communities_cf(app: Flask, db, cache) -> None:
     """Initialize oarepo custom fields including community specific ones."""
     result = app.test_cli_runner().invoke(create_communities_custom_field, [])
     assert result.exit_code == 0

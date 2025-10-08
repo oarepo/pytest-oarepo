@@ -38,9 +38,9 @@ def draft_with_community_factory(community_records_service, base_model_schema, p
         :param expand: Expand the response.
         :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-        additional_data = {} if not additional_data else additional_data
+        additional_data = additional_data if additional_data else {}
         if "$schema" not in additional_data:
-            additional_data["$schema"] = base_model_schema if not model_schema else model_schema
+            additional_data["$schema"] = model_schema if model_schema else base_model_schema
         json = prepare_record_data(custom_data, custom_workflow, additional_data, add_default_workflow=False)
         draft = community_records_service.create(
             identity=identity,
