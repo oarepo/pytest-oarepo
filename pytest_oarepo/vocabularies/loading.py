@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+# TODO: datastreams scrapped
+"""
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -23,10 +25,9 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def test_vocabularies() -> None:
-    """Load test vocabularies."""
+
 
     class ErrCallback(FixturesCallback):
-        """Callback that ignores failed entries."""
 
         def batch_finished(self, batch: StreamBatch) -> None:
             if batch.failed_entries:
@@ -36,3 +37,4 @@ def test_vocabularies() -> None:
     callback = ErrCallback()
     load_fixtures(Path(__file__).parent / "data", callback=callback, system_fixtures=False)
     Vocabulary.index.refresh()
+"""

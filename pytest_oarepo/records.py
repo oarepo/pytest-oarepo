@@ -32,9 +32,9 @@ class CreateRecordFn(Protocol):
         custom_data: dict[str, Any] | None = ...,
         additional_data: dict[str, Any] | None = ...,
         custom_workflow: str | None = ...,
-        expand: bool | None = ...,
+        expand: bool = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
         """Create instance of a record."""
 
 
@@ -47,11 +47,11 @@ class CreateRecordWithFilesFn(Protocol):
         custom_data: dict[str, Any] | None = ...,
         additional_data: dict[str, Any] | None = ...,
         custom_workflow: str | None = ...,
-        expand: bool | None = ...,
+        expand: bool = ...,
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
         """Create instance of a record with a file."""
 
 
@@ -64,9 +64,9 @@ def draft_factory(record_service: RecordService, prepare_record_data: PrepareRec
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
-        expand: bool | None = None,
+        expand: bool = False,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
         """Create instance of a draft.
 
         :param identity: Identity of the caller.
@@ -98,7 +98,7 @@ def record_factory(record_service: RecordService, draft_factory: CreateRecordFn)
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
-        expand: bool | None = None,
+        expand: bool = False,
         **service_kwargs: Any,
     ) -> dict[str, Any]:
         """Create instance of a published record.
@@ -137,7 +137,7 @@ def record_with_files_factory(
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
-        expand: bool | None = None,
+        expand: bool = False,
         # kept for API parity
         file_name: str = "test.pdf",  # noqa ARG001
         custom_file_metadata: dict[str, Any] | None = None,  # noqa ARG001
@@ -165,7 +165,8 @@ def record_with_files_factory(
             custom_workflow=custom_workflow,
             **service_kwargs,
         )
-        files_service = record_service._draft_files  # noqa SLF001
+        # _draft_files is not typed
+        files_service = record_service._draft_files  # type: ignore[reportAttributeAccessIssue]  # noqa: SLF001
         upload_file(identity, draft["id"], files_service)
         record = record_service.publish(
             system_identity,

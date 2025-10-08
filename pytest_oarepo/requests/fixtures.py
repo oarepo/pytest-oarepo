@@ -22,6 +22,8 @@ from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
 from invenio_users_resources.proxies import current_groups_service
+
+# TODO: circular dependency on releasing new requests
 from oarepo_requests.proxies import current_requests_service
 
 if TYPE_CHECKING:
@@ -54,7 +56,7 @@ class CreateRequestFn(Protocol):
         additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
         **request_kwargs: Any,
-    ) -> RequestItem:
+    ) -> RequestItem:  # type: ignore[reportReturnType]
         """Create request of specific type on a specific record."""
 
 
@@ -69,7 +71,7 @@ class CreateRequestOnTopicFn(Protocol):
         additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
         **request_kwargs: Any,
-    ) -> RequestItem:
+    ) -> RequestItem:  # type: ignore[reportReturnType]
         """Create request of specific type on a specific record."""
 
 
@@ -84,14 +86,15 @@ class SubmitRequestFn(Protocol):
         create_additional_data: dict[str, Any] | None = ...,
         submit_additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
-    ) -> RequestItem:
+    ) -> RequestItem:  # type: ignore[reportReturnType]
         """Create and submit request of specific type on a specific record."""
 
 
 @pytest.fixture(scope="module")
 def request_events_service(app: Flask) -> RequestEventsService:  # noqa ARG001
     """Return request events service."""
-    return current_requests.request_events_service
+    # TODO: should None be allowed in the proxy?
+    return current_requests.request_events_service  # type: ignore [reportReturnType]
 
 
 @pytest.fixture(scope="module")
@@ -131,7 +134,8 @@ def add_user_in_role(db: SQLAlchemy) -> Callable[[UserFixtureBase, Role | str], 
                 db.session.add(role_or_role_name)
         else:
             role = role_or_role_name
-        user.user.roles.append(role)
+        # TODO: UserFixtureBase is not typed
+        user.user.roles.append(role)  # type: ignore[reportOptionalMemberAccess]
         db.session.commit()
 
     return _add_user_in_role

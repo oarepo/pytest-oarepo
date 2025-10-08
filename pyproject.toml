@@ -20,14 +20,6 @@ base = [
     "oarepo-runtime>=2.0.0dev13,<3.0.0",
     "pytest>=7.1.2",
 ]
-#communities = [
-#    "deepmerge",
-#    "oarepo-communities",
-#    "oarepo-requests",
-#    "oarepo-runtime",
-#    "oarepo-workflows",
-#    "pytest>=7.1.2",
-#]
 #requests = [
 #    "deepmerge",
 #    "oarepo-requests",

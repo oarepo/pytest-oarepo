@@ -85,7 +85,7 @@ class PrepareRecordDataFn(Protocol):
         custom_workflow: str | None = ...,
         additional_data: dict[str, Any] | None = ...,
         add_default_workflow: bool = ...,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
         """Call to merge input definitions into data passed to record service."""
 
 
