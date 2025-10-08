@@ -9,18 +9,31 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
+
 import pytest
 from deepmerge import always_merger
+from flask_principal import Identity
 from invenio_access.permissions import system_identity
 from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
 from invenio_records_permissions.generators import SystemProcess
+from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
+from invenio_requests.services.requests import RequestItem
 from invenio_users_resources.proxies import current_groups_service
 from oarepo_requests.proxies import current_requests_service
+
+if TYPE_CHECKING:
+    from flask import Flask
+    from invenio_db.shared import SQLAlchemy
+    from invenio_requests.services.events.service import RequestEventsService
+    from invenio_requests.services.requests.service import RequestsService
+    from pytest_invenio.user import UserFixtureBase
 
 can_comment_only_receiver = [
     Receiver(),
@@ -29,49 +42,43 @@ can_comment_only_receiver = [
 
 
 @pytest.fixture(scope="module")
-def requests_service(app):
-    return current_requests.requests_service
+def request_events_service(app: Flask) -> RequestEventsService:  # noqa ARG001
+    """Return request events service."""
+    return current_requests.request_events_service
 
 
 @pytest.fixture(scope="module")
-def request_events_service(app):
-    service = current_requests.request_events_service
-    return service
-
-
-@pytest.fixture(scope="module")
-def oarepo_requests_service(app):
+def requests_service(app: Flask) -> RequestsService:  # noqa ARG001
+    """Return requests service."""
     return current_requests_service
 
 
-def _create_role(id, name, description, is_managed, database):
-    """Creates a Role/Group."""
-    r = current_datastore.create_role(id=id, name=name, description=description, is_managed=is_managed)
+def _create_role(id_: str, name: str, description: str, is_managed: bool) -> Role:
+    """Create a Role/Group."""
+    r = current_datastore.create_role(id=id_, name=name, description=description, is_managed=is_managed)
     current_datastore.commit()
     return r
 
 
 @pytest.fixture
-def role(database):
-    """A single group."""
-    r = _create_role(
-        id="it-dep",
+def role() -> Role:
+    """Create a Role/Group."""
+    return _create_role(
+        id_="it-dep",
         name="it-dep",
         description="IT Department",
         is_managed=False,
-        database=database,
     )
-    return r
 
 
 @pytest.fixture
-def add_user_in_role(db):
-    """Adds user to role or creates it if it doesn't exist"""
+def add_user_in_role(db: SQLAlchemy) -> Callable[[UserFixtureBase, Role | str], None]:
+    """Add user to role or creates it if it doesn't exist."""
 
-    def _add_user_in_role(user, role_or_role_name: Role | str):
+    def _add_user_in_role(user: UserFixtureBase, role_or_role_name: Role | str) -> None:
         if isinstance(role_or_role_name, str):
             try:
-                role = current_groups_service.read(system_identity, role_or_role_name)._group.model.model_obj
+                role = current_groups_service.read(system_identity, role_or_role_name)._group.model.model_obj  # noqa SLF001
             except PermissionDeniedError:  # missing group in db raises this
                 role = Role(name=role_or_role_name)
                 db.session.add(role_or_role_name)
@@ -84,7 +91,7 @@ def add_user_in_role(db):
 
 
 @pytest.fixture
-def role_ui_serialization(host):
+def role_ui_serialization(host: str) -> dict[str, Any]:
     """UI serialization of the example role in role fixture."""
     return {
         "label": "it-dep",
@@ -98,7 +105,8 @@ def role_ui_serialization(host):
 
 
 @pytest.fixture
-def events_resource_data():
+def events_resource_data() -> dict[str, Any]:
+    """Fixture for adding required input data default values for events."""
     return {
         "payload": {
             "content": "This is an event.",
@@ -108,28 +116,31 @@ def events_resource_data():
 
 
 @pytest.fixture
-def request_type_additional_data():
+def request_type_additional_data() -> dict[str, Any]:
     """Fixture for adding required input data default values specific by request type."""
     return {"publish_draft": {"payload": {"version": "1.0"}}}
 
 
 @pytest.fixture
-def create_request(request_type_additional_data, record_service, oarepo_requests_service):
-    """Base fixture for creating a request."""
+def create_request(
+    request_type_additional_data: dict[str, Any], record_service: RecordService, requests_service: RequestsService
+) -> Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem]:
+    """Return base function for creating a request."""
 
-    def _create_request(
-        identity,
-        id_,
-        request_type,
-        topic_read_method,
-        additional_data=None,
-        expand=False,
-        **request_kwargs,
-    ):
+    def _create_request(  # noqa PLR0913
+        identity: Identity,
+        id_: str,
+        request_type: str,
+        topic_read_method: str,
+        additional_data: dict[str, Any] | None = None,
+        expand: bool = False,
+        **request_kwargs: Any,
+    ) -> RequestItem:
         """Create request of specific type on a specific record.
+
         :param identity: Identity of the caller.
         :param id_: ID of the topic record.
-        :param request_type: ID of the topic record.
+        :param request_type: ID of the request type.
         :param topic_read_method: Method the service uses to read the topic.
         :param additional_data: Additional data needed to create the request.
         :param expand: Expand the created request response.
@@ -142,8 +153,8 @@ def create_request(request_type_additional_data, record_service, oarepo_requests
         if request_type in request_type_additional_data:
             additional_data = always_merger.merge(additional_data, request_type_additional_data[request_type])
 
-        topic = getattr(topic_service, topic_read_method)(system_identity, id_)._obj
-        response = oarepo_requests_service.create(
+        topic = getattr(topic_service, topic_read_method)(system_identity, id_)._obj  # noqa SLF001
+        return requests_service.create(
             identity,
             data=additional_data,
             request_type=request_type,
@@ -151,23 +162,24 @@ def create_request(request_type_additional_data, record_service, oarepo_requests
             expand=expand,
             **request_kwargs,
         )
-        return response
 
     return _create_request
 
 
 @pytest.fixture
-def create_request_on_draft(create_request):
+def create_request_on_draft(
+    create_request: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+) -> Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem]:
     """Fixture for creating a request on a draft."""
 
     def _create(
-        identity,
-        topic_id,
-        request_type,
-        additional_data=None,
-        expand=False,
-        **request_kwargs,
-    ):
+        identity: Identity,
+        topic_id: str,
+        request_type: str,
+        additional_data: dict[str, Any] | None = None,
+        expand: bool = False,
+        **request_kwargs: Any,
+    ) -> RequestItem:
         """Create request of specific type on a draft record.
         :param identity: Identity of the caller.
         :param topic_id: ID of the topic record.
@@ -190,17 +202,19 @@ def create_request_on_draft(create_request):
 
 
 @pytest.fixture
-def create_request_on_record(create_request):
+def create_request_on_record(
+    create_request: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+) -> Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem]:
     """Fixture for creating a request on a published record."""
 
     def _create(
-        identity,
-        topic_id,
-        request_type,
-        additional_data=None,
-        expand=False,
-        **request_kwargs,
-    ):
+        identity: Identity,
+        topic_id: str,
+        request_type: str,
+        additional_data: dict[str, Any] | None = None,
+        expand: bool = False,
+        **request_kwargs: Any,
+    ) -> RequestItem:
         """Create request of specific type on a published record.
         :param identity: Identity of the caller.
         :param topic_id: ID of the topic record.
@@ -223,16 +237,19 @@ def create_request_on_record(create_request):
 
 
 @pytest.fixture
-def submit_request_on_draft(create_request_on_draft, requests_service):
+def submit_request_on_draft(
+    create_request_on_draft: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+    requests_service: RequestsService,
+) -> Callable[[Identity, str, str, dict[str, Any] | None, dict[str, Any] | None, bool], RequestItem]:
     """Fixture for creating and submitting request on a draft in one call."""
 
     def _submit_request(
-        identity,
-        topic_id,
-        request_type,
-        create_additional_data=None,
-        submit_additional_data=None,
-        expand=False,
+        identity: Identity,
+        topic_id: str,
+        request_type: str,
+        create_additional_data: dict[str, Any] | None = None,
+        submit_additional_data: dict[str, Any] | None = None,
+        expand: bool = False,
     ):
         """Creates and submits request of specific type on a specific record..
         :param identity: Identity of tha caller.
@@ -259,16 +276,19 @@ def submit_request_on_draft(create_request_on_draft, requests_service):
 
 
 @pytest.fixture
-def submit_request_on_record(create_request_on_record, requests_service):
+def submit_request_on_record(
+    create_request_on_draft: Callable[[Identity, str, str, str, dict[str, Any] | None, bool, Any], RequestItem],
+    requests_service: RequestsService,
+) -> Callable[[Identity, str, str, dict[str, Any] | None, dict[str, Any] | None, bool], RequestItem]:
     """Fixture for creating and submitting request on a published record in one call."""
 
     def _submit_request(
-        identity,
-        topic_id,
-        request_type,
-        create_additional_data=None,
-        submit_additional_data=None,
-        expand=False,
+        identity: Identity,
+        topic_id: str,
+        request_type: str,
+        create_additional_data: dict[str, Any] | None = None,
+        submit_additional_data: dict[str, Any] | None = None,
+        expand: bool = False,
     ):
         """Creates and submits request of specific type on a specific record..
         :param client: Client instance.

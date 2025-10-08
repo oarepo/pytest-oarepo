@@ -12,11 +12,15 @@ from __future__ import annotations
 
 import base64
 import os
+from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy.exc import IntegrityError
 
 from pytest_oarepo.functions import _index_users
+
+if TYPE_CHECKING:
+    from invenio_db.shared import SQLAlchemy
 
 
 @pytest.fixture
@@ -25,7 +29,7 @@ def password():
     return base64.b64encode(os.urandom(16)).decode("utf-8")
 
 
-def _create_user(user_fixture, app, db) -> None:
+def _create_user(user_fixture, app, db: SQLAlchemy) -> None:
     """Create users, reusing it if it already exists."""
     try:
         user_fixture.create(app, db)
@@ -38,7 +42,7 @@ def _create_user(user_fixture, app, db) -> None:
 
 
 @pytest.fixture
-def users(app, db, UserFixture, password):
+def users(app, db: SQLAlchemy, UserFixture, password):
     """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",

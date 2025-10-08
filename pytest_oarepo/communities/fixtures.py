@@ -10,7 +10,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from invenio_communities.cli import create_communities_custom_field
@@ -20,8 +20,10 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from oarepo_communities.proxies import current_oarepo_communities
 
 from pytest_oarepo.functions import _index_users
+
 if TYPE_CHECKING:
     from flask import Flask
+
 
 @pytest.fixture
 def community_inclusion_service():
@@ -34,7 +36,7 @@ def community_records_service():
 
 
 @pytest.fixture
-def minimal_community()->dict[str, Any]:
+def minimal_community() -> dict[str, Any]:
     """Default data used for creating a new community."""
     return {
         "access": {
