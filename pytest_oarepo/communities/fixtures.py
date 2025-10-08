@@ -16,42 +16,32 @@ import pytest
 from invenio_communities.cli import create_communities_custom_field
 from invenio_communities.communities.records.api import Community
 from invenio_communities.proxies import current_communities
-from invenio_db.shared import SQLAlchemy
 from invenio_pidstore.errors import PIDDoesNotExistError
-from oarepo_communities.proxies import current_oarepo_communities
 
 from pytest_oarepo.functions import _index_users
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
     from flask import Flask
-    from invenio_communities.communities.records.api import Community
-    from flask_principal import Identity
-    from invenio_communities.communities.services.service import CommunityService
+    from invenio_db.shared import SQLAlchemy
     from pytest_invenio.user import UserFixtureBase
 
+
 class CommunityGetOrCreateFn(Protocol):
+    """Function returning existing community or creating new one if one with the same slug doesn't exist."""
+
     def __call__(
         self,
-        community_owner: "UserFixtureBase",
+        community_owner: UserFixtureBase,
         slug: str | None = ...,
         community_dict: dict[str, Any] | None = ...,
         workflow: str | None = ...,
-    ) -> Community: ...
-
-@pytest.fixture
-def community_inclusion_service():
-    return current_oarepo_communities.community_inclusion_service
-
-
-@pytest.fixture
-def community_records_service():
-    return current_oarepo_communities.community_records_service
+    ) -> Community:
+        """Get or create community."""
 
 
 @pytest.fixture
 def minimal_community() -> dict[str, Any]:
-    """Default data used for creating a new community."""
+    """Return default data used for creating a new community."""
     return {
         "access": {
             "visibility": "public",
@@ -64,22 +54,33 @@ def minimal_community() -> dict[str, Any]:
     }
 
 
+# TODO: scrap?
 @pytest.fixture
-def init_communities_cf(app: Flask, cache) -> None:
+def init_communities_cf(app: Flask, cache: Any) -> None:  # noqa ARG001
     """Initialize oarepo custom fields including community specific ones."""
     result = app.test_cli_runner().invoke(create_communities_custom_field, [])
-    assert result.exit_code == 0
+    if result.exit_code != 0:
+        raise RuntimeError(f"Failed to initialize communities custom fields: {result.output}")
     Community.index.refresh()
 
 
 @pytest.fixture
-def community(app: Flask, community_owner: UserFixtureBase, community_get_or_create: CommunityGetOrCreateFn):
-    """Basic community."""
+def community(
+    app: Flask,  # noqa ARG001
+    community_owner: UserFixtureBase,
+    community_get_or_create: CommunityGetOrCreateFn,
+) -> Community:
+    """Return basic community."""
     return community_get_or_create(community_owner)
 
 
 @pytest.fixture
-def communities(app, community_owner: "UserFixtureBase", community_get_or_create: CommunityGetOrCreateFn)->dict[str, Community]:
+def communities(
+    app: Flask,  # noqa ARG001
+    community_owner: UserFixtureBase,
+    community_get_or_create: CommunityGetOrCreateFn,
+) -> dict[str, Community]:
+    """Return two communities."""
     return {
         "aaa": community_get_or_create(community_owner, slug="aaa"),
         "bbb": community_get_or_create(community_owner, slug="bbb"),
@@ -87,11 +88,11 @@ def communities(app, community_owner: "UserFixtureBase", community_get_or_create
 
 
 @pytest.fixture
-def community_owner(UserFixture, app: Flask, db: SQLAlchemy)-> "UserFixtureBase":
+def community_owner(UserFixture, app: Flask, db: SQLAlchemy, password: str) -> UserFixtureBase:  # noqa N803
     """User fixture used as owner of the community fixture."""
     u = UserFixture(
         email="community_owner@inveniosoftware.org",
-        password="community_owner",
+        password=password,
         preferences={"locale": "en"},
     )
     u.create(app, db)
@@ -100,10 +101,10 @@ def community_owner(UserFixture, app: Flask, db: SQLAlchemy)-> "UserFixtureBase"
 
 @pytest.fixture
 def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOrCreateFn:
-    """Function returning existing community or creating new one if one with the same slug doesn't exist."""
+    """Return existing community or creating new one if one with the same slug doesn't exist."""
 
     def _get_or_create(
-        community_owner: "UserFixtureBase",
+        community_owner: UserFixtureBase,
         slug: str | None = None,
         community_dict: dict[str, Any] | None = None,
         workflow: str | None = None,
@@ -124,8 +125,8 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
             )
             Community.index.refresh()
             _index_users()
-            community_owner._identity = None  # the problem with creating
+            community_owner._identity = None  # noqa SLF001
 
-        return c
+        return c  # TODO: check type
 
     return _get_or_create

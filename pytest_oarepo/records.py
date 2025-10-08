@@ -17,13 +17,15 @@ from invenio_access.permissions import system_identity
 
 if TYPE_CHECKING:
     from flask_principal import Identity
-    from invenio_records_resources.services import RecordService
-    from invenio_records_resources.services.records.results import (
-        RecordItem,
-        RecordList,
-    )
+    from invenio_drafts_resources.services import RecordService
+
+    from pytest_oarepo.files import UploadFileFn
+    from pytest_oarepo.fixtures import PrepareRecordDataFn
+
 
 class CreateRecordFn(Protocol):
+    """Callable to create a record."""
+
     def __call__(
         self,
         identity: Identity,
@@ -32,10 +34,14 @@ class CreateRecordFn(Protocol):
         custom_workflow: str | None = ...,
         expand: bool | None = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Create instance of a record."""
+
 
 class CreateRecordWithFilesFn(Protocol):
-    def __call__(
+    """Callable to create a record with a file."""
+
+    def __call__(  # noqa PLR0913
         self,
         identity: Identity,
         custom_data: dict[str, Any] | None = ...,
@@ -45,14 +51,16 @@ class CreateRecordWithFilesFn(Protocol):
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Create instance of a record with a file."""
+
 
 @pytest.fixture
-def draft_factory(record_service: RecordService, prepare_record_data) -> CreateRecordFn:
+def draft_factory(record_service: RecordService, prepare_record_data: PrepareRecordDataFn) -> CreateRecordFn:
     """Call to instance a draft."""
 
     def draft(
-        identity: "Identity",
+        identity: Identity,
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
@@ -68,9 +76,9 @@ def draft_factory(record_service: RecordService, prepare_record_data) -> CreateR
         :param expand: Expand the response.
         :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-        # TODO possibly support for more model types?
+        # TODO: possibly support for more model types?
         # like this perhaps
-        # service = record_service(model) if isinstance(record_service, callable) else record_service
+        # ruff ok service = record_service(model) if isinstance(record_service, callable) else record_service
 
         json = prepare_record_data(custom_data, custom_workflow, additional_data)
         draft = record_service.create(identity=identity, data=json, expand=expand, **service_kwargs)
@@ -80,11 +88,11 @@ def draft_factory(record_service: RecordService, prepare_record_data) -> CreateR
 
 
 @pytest.fixture
-def record_factory(record_service: "RecordService", draft_factory: CreateRecordFn) -> CreateRecordFn:
+def record_factory(record_service: RecordService, draft_factory: CreateRecordFn) -> CreateRecordFn:
     """Call to instance a published record."""
 
     def record(
-        identity: "Identity",
+        identity: Identity,
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
@@ -115,21 +123,22 @@ def record_factory(record_service: "RecordService", draft_factory: CreateRecordF
 
 @pytest.fixture
 def record_with_files_factory(
-    record_service: "RecordService",
+    record_service: RecordService,
     draft_factory: CreateRecordFn,
     default_record_with_workflow_json: dict[str, Any],
-    upload_file,
+    upload_file: UploadFileFn,
 ) -> CreateRecordWithFilesFn:
     """Call to instance a published record with a file."""
 
-    def record(
-        identity: "Identity",
+    def record(  # noqa PLR0913
+        identity: Identity,
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
         expand: bool | None = None,
-        file_name: str = "test.pdf",
-        custom_file_metadata: dict[str, Any] | None = None,  # kept for API parity
+        # kept for API parity
+        file_name: str = "test.pdf",  # noqa ARG001
+        custom_file_metadata: dict[str, Any] | None = None,  # noqa ARG001
         **service_kwargs: Any,
     ) -> dict[str, Any]:
         """Create instance of a published record.
@@ -154,7 +163,7 @@ def record_with_files_factory(
             custom_workflow=custom_workflow,
             **service_kwargs,
         )
-        files_service = record_service._draft_files
+        files_service = record_service._draft_files  # noqa SLF001
         upload_file(identity, draft["id"], files_service)
         record = record_service.publish(
             system_identity,
