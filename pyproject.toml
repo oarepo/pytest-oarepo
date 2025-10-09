@@ -15,28 +15,13 @@ dependencies = [
 Homepage = "https://github.com/oarepo/pytest_oarepo"
 
 [project.optional-dependencies]
-base = [
-    "deepmerge",
-    "oarepo-runtime>=2.0.0dev13,<3.0.0",
-    "pytest>=7.1.2",
-]
-#requests = [
-#    "deepmerge",
-#    "oarepo-requests",
-#    "oarepo-runtime>=2.0.0dev13,<3.0.0",
-#    "oarepo-workflows>=2.0.0dev3,<3.0.0",
-#    "pytest>=7.1.2",
-#]
-#vocabularies = [
-#    "deepmerge",
-#    "oarepo-runtime>=2.0.0dev13,<3.0.0",
-#    "oarepo-vocabularies",
-#    "pytest>=7.1.2",
-#]
-workflows = [
+dev = [
     "deepmerge",
     "oarepo-runtime>=2.0.0dev13,<3.0.0",
     "oarepo-workflows>=2.0.0dev3,<3.0.0",
+    "pytest>=7.1.2",
+]
+tests = [
     "pytest>=7.1.2",
 ]
 oarepo14 = [
