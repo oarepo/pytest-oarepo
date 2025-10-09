@@ -18,22 +18,16 @@ from invenio_accounts.models import Role
 from invenio_accounts.proxies import current_datastore
 from invenio_records_permissions.generators import SystemProcess
 from invenio_records_resources.services.errors import PermissionDeniedError
-from invenio_requests.proxies import current_requests
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
 from invenio_users_resources.proxies import current_groups_service
 
-# TODO: circular dependency on releasing new requests
-from oarepo_requests.proxies import current_requests_service
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from flask import Flask
     from flask_principal import Identity
     from invenio_db.shared import SQLAlchemy
     from invenio_records_resources.services import RecordService
-    from invenio_requests.services.events.service import RequestEventsService
     from invenio_requests.services.requests import RequestItem
     from invenio_requests.services.requests.service import RequestsService
     from pytest_invenio.user import UserFixtureBase
@@ -88,19 +82,6 @@ class SubmitRequestFn(Protocol):
         expand: bool = ...,
     ) -> RequestItem:  # type: ignore[reportReturnType]
         """Create and submit request of specific type on a specific record."""
-
-
-@pytest.fixture(scope="module")
-def request_events_service(app: Flask) -> RequestEventsService:  # noqa ARG001
-    """Return request events service."""
-    # TODO: should None be allowed in the proxy?
-    return current_requests.request_events_service  # type: ignore [reportReturnType]
-
-
-@pytest.fixture(scope="module")
-def requests_service(app: Flask) -> RequestsService:  # noqa ARG001
-    """Return requests service."""
-    return current_requests_service
 
 
 def _create_role(id_: str, name: str, description: str, is_managed: bool) -> Role:
