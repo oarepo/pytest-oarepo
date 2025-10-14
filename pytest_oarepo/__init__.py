@@ -13,7 +13,7 @@ This module provides testing utilities and fixtures in OARepo applications.
 
 from __future__ import annotations
 
-__version__ = "2.0.0dev0"
+__version__ = "2.0.1"
 
 __all__ = [
     "__version__",
