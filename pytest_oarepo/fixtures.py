@@ -68,7 +68,9 @@ def default_record_json() -> dict[str, Any]:
 
 
 @pytest.fixture
-def default_record_with_workflow_json(default_record_json: dict[str, Any]) -> dict[str, Any]:
+def default_record_with_workflow_json(
+    default_record_json: dict[str, Any],
+) -> dict[str, Any]:
     """Return default data for creating a record."""
     return {
         **default_record_json,
