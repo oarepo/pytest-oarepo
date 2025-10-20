@@ -155,7 +155,9 @@ def request_type_additional_data() -> dict[str, Any]:
 
 @pytest.fixture
 def create_request(
-    request_type_additional_data: dict[str, Any], record_service: RecordService, requests_service: RequestsService
+    request_type_additional_data: dict[str, Any],
+    record_service: RecordService,
+    requests_service: RequestsService,
 ) -> CreateRequestFn:
     """Return base function for creating a request."""
 
