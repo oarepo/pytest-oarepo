@@ -10,15 +10,15 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import pytest
+from invenio_communities.cli import create_communities_custom_field
 from invenio_communities.communities.records.api import Community
 from invenio_communities.proxies import current_communities
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from pytest_oarepo.functions import _index_users
-from invenio_communities.cli import create_communities_custom_field
 
 if TYPE_CHECKING:
     from flask import Flask
@@ -35,7 +35,7 @@ class CommunityGetOrCreateFn(Protocol):
         slug: str | None = ...,
         community_dict: dict[str, Any] | None = ...,
         workflow: str | None = ...,
-    ) -> Community:
+    ) -> Community:  # type: ignore[reportReturnType]
         """Get or create community."""
 
 
@@ -54,14 +54,12 @@ def minimal_community() -> dict[str, Any]:
     }
 
 
-
 @pytest.fixture
 def init_communities_cf(app: Flask, cache: Any) -> None:  # noqa ARG001
     result = app.test_cli_runner().invoke(create_communities_custom_field, [])
     if result.exit_code != 0:
         raise RuntimeError(f"Failed to initialize communities custom fields: {result.output}")
-    Community.index.refresh()
-
+    Community.index.refresh()  # type: ignore[reportAttributeAccessIssue]
 
 
 @pytest.fixture
@@ -112,6 +110,8 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
         """Util to get or create community, to avoid duplicate error."""
         community_dict = community_dict if community_dict else minimal_community
         slug = slug if slug else community_dict["slug"]
+        if not isinstance(slug, str):
+            raise TypeError("Slug must be a string")
         community_dict["slug"] = slug
         try:
             c = current_communities.service.record_cls.pid.resolve(slug)
@@ -122,11 +122,12 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
                     **community_dict,
                     "custom_fields": {"workflow": workflow or "default"},
                 },
-            )._obj
-            Community.index.refresh()
+            )
+            c = c._obj  # noqa SLF001
+            Community.index.refresh()  # type: ignore[reportAttributeAccessIssue]
             _index_users()
             community_owner._identity = None  # noqa SLF001
 
-        return c  # TODO: check type
+        return cast("Community", c)
 
     return _get_or_create

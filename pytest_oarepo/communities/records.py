@@ -33,9 +33,9 @@ class CreateCommunityRecordFn(Protocol):
         custom_data: dict[str, Any] | None = ...,
         additional_data: dict[str, Any] | None = ...,
         custom_workflow: str | None = ...,
-        expand: bool | None = ...,
+        expand: bool = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
         """Create a record in a community."""
 
 
@@ -54,7 +54,7 @@ def draft_with_community_factory(
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
-        expand: bool | None = None,
+        expand: bool = False,
         **service_kwargs: Any,
     ) -> dict[str, Any]:
         """Create instance of a draft in a community.
@@ -71,10 +71,10 @@ def draft_with_community_factory(
         additional_data = additional_data if additional_data else {}
         if "$schema" not in additional_data:
             additional_data["$schema"] = model_schema if model_schema else base_model_schema
-        json = prepare_record_data(custom_data, custom_workflow, additional_data, add_default_workflow=False) # default workflow taken from community
-        json.setdefault("parent", {}).setdefault("communities", {})[
-            "default"
-        ] = community_id
+        json = prepare_record_data(
+            custom_data, custom_workflow, additional_data, add_default_workflow=False
+        )  # default workflow taken from community
+        json.setdefault("parent", {}).setdefault("communities", {})["default"] = community_id
         draft = record_service.create(
             identity=identity,
             data=json,
@@ -100,7 +100,7 @@ def published_record_with_community_factory(
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
-        expand: bool | None = None,
+        expand: bool = False,
         **service_kwargs: Any,
     ) -> dict[str, Any]:
         """Create instance of a published record in a community.
