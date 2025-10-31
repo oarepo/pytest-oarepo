@@ -6,9 +6,10 @@
 # pytest-oarepo is free software; you can redistribute it and/or modify it
 # under the terms of the MIT License; see LICENSE file for more details.
 #
-"""Test package for pytest-oarepo.
+"""Communities module for pytest-oarepo.
 
-This package contains tests for the pytest-oarepo library.
+This module provides testing utilities and fixtures for working with communities
+in OARepo applications.
 """
 
 from __future__ import annotations
