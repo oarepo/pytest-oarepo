@@ -21,23 +21,6 @@ if TYPE_CHECKING:
     from pytest_invenio.user import UserFixtureBase
 
 
-def invite(user_fixture: UserFixtureBase, community_id: str, role: str) -> None:
-    """Add/invite a user to a community with a specific role."""
-    invitation_data = {
-        "members": [
-            {
-                "type": "user",
-                "id": user_fixture.id,
-            }
-        ],
-        "role": role,
-        "visible": True,
-    }
-    current_communities.service.members.add(system_identity, community_id, invitation_data)
-    _index_users()
-    user_fixture._identity = None  # noqa SLF001
-
-
 def remove_member_from_community(user_id: str, community_id: str) -> None:
     """Remove a user from a community."""
     delete_data = {

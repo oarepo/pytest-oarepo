@@ -17,7 +17,7 @@ from invenio_communities.cli import create_communities_custom_field
 from invenio_communities.communities.records.api import Community
 from invenio_communities.proxies import current_communities
 from invenio_pidstore.errors import PIDDoesNotExistError
-
+from invenio_access.permissions import system_identity
 from pytest_oarepo.functions import _index_users
 
 if TYPE_CHECKING:
@@ -131,3 +131,22 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
         return cast("Community", c)
 
     return _get_or_create
+
+@pytest.fixture
+def invite():
+    def _invite(user_fixture: UserFixtureBase, community_id: str, role: str) -> None:
+        """Add/invite a user to a community with a specific role."""
+        invitation_data = {
+            "members": [
+                {
+                    "type": "user",
+                    "id": user_fixture.id,
+                }
+            ],
+            "role": role,
+            "visible": True,
+        }
+        current_communities.service.members.add(system_identity, community_id, invitation_data)
+        _index_users()
+        user_fixture._identity = None  # noqa SLF001
+    return _invite
