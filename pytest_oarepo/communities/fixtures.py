@@ -13,14 +13,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import pytest
+from invenio_access.permissions import system_identity
 from invenio_communities.cli import create_communities_custom_field
 from invenio_communities.communities.records.api import Community
 from invenio_communities.proxies import current_communities
 from invenio_pidstore.errors import PIDDoesNotExistError
-from invenio_access.permissions import system_identity
+
 from pytest_oarepo.functions import _index_users
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from flask import Flask
     from invenio_db.shared import SQLAlchemy
     from pytest_invenio.user import UserFixtureBase
@@ -132,8 +135,11 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
 
     return _get_or_create
 
+
 @pytest.fixture
-def invite():
+def invite() -> Callable[[UserFixtureBase, str, str], None]:
+    """Add a user to a community with a specific role."""
+
     def _invite(user_fixture: UserFixtureBase, community_id: str, role: str) -> None:
         """Add/invite a user to a community with a specific role."""
         invitation_data = {
@@ -149,4 +155,5 @@ def invite():
         current_communities.service.members.add(system_identity, community_id, invitation_data)
         _index_users()
         user_fixture._identity = None  # noqa SLF001
+
     return _invite

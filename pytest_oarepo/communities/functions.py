@@ -10,15 +10,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from invenio_access.permissions import system_identity
 from invenio_communities.proxies import current_communities
-
-from pytest_oarepo.functions import _index_users
-
-if TYPE_CHECKING:
-    from pytest_invenio.user import UserFixtureBase
 
 
 def remove_member_from_community(user_id: str, community_id: str) -> None:
