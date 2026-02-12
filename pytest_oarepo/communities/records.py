@@ -68,9 +68,9 @@ def draft_with_community_factory(
         :param expand: Expand the response.
         :param service_kwargs: Additional keyword arguments to pass to the service.
         """
-        additional_data = additional_data if additional_data else {}
+        additional_data = additional_data or {}
         if "$schema" not in additional_data:
-            additional_data["$schema"] = model_schema if model_schema else base_model_schema
+            additional_data["$schema"] = model_schema or base_model_schema
         json = prepare_record_data(
             custom_data, custom_workflow, additional_data, add_default_workflow=False
         )  # default workflow taken from community
