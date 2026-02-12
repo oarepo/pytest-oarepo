@@ -38,6 +38,7 @@ class CommunityGetOrCreateFn(Protocol):
         slug: str | None = ...,
         community_dict: dict[str, Any] | None = ...,
         workflow: str | None = ...,
+        allowed_workflows: list[str] | None = ...,
     ) -> Community:  # type: ignore[reportReturnType]
         """Get or create community."""
 
@@ -109,10 +110,11 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
         slug: str | None = None,
         community_dict: dict[str, Any] | None = None,
         workflow: str | None = None,
+        allowed_workflows: list[str] | None = None,
     ) -> Community:
         """Util to get or create community, to avoid duplicate error."""
-        community_dict = community_dict if community_dict else minimal_community
-        slug = slug if slug else community_dict["slug"]
+        community_dict = community_dict or minimal_community
+        slug = slug or community_dict["slug"]
         if not isinstance(slug, str):
             raise TypeError("Slug must be a string")
         community_dict["slug"] = slug
@@ -123,7 +125,10 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
                 community_owner.identity,
                 {
                     **community_dict,
-                    "custom_fields": {"workflow": workflow or "default"},
+                    "custom_fields": {
+                        "workflow": workflow or "default",
+                        "allowed_workflows": allowed_workflows or ["default"],
+                    },
                 },
             )
             c = c._obj  # noqa SLF001
