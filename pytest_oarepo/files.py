@@ -60,7 +60,7 @@ def upload_file(file_metadata: dict[str, Any]) -> UploadFileFn:
         :param file_name: Name of the file to be uploaded.
         :param custom_file_metadata: Custom metadata to be uploaded.
         """
-        actual_file_metadata = custom_file_metadata if custom_file_metadata else file_metadata
+        actual_file_metadata = custom_file_metadata or file_metadata
         files_service.init_files(
             identity,
             record_id,
