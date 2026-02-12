@@ -108,7 +108,7 @@ def prepare_record_data(default_record_json: dict[str, Any]) -> PrepareRecordDat
         :param add_default_workflow: Allows user to to pass data into the service without workflow -
         this might be useful for example in case of wanting to use community default workflow.
         """
-        record_json = custom_data if custom_data else default_record_json
+        record_json = custom_data or default_record_json
         json = copy.deepcopy(record_json)
         if add_default_workflow:
             always_merger.merge(json, {"parent": {"workflow": "default"}})
