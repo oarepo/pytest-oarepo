@@ -9,6 +9,7 @@ requires-python = ">=3.13,<3.14"
 
 dependencies = [
     "oarepo[rdm,tests]>=14.0.0,<15.0.0",
+    "deepmerge",
 ]
 
 [project.urls]
@@ -16,7 +17,6 @@ Homepage = "https://github.com/oarepo/pytest_oarepo"
 
 [project.optional-dependencies]
 dev = [
-    "deepmerge",
     "oarepo-runtime>=2.0.0dev13,<3.0.0",
     "oarepo-workflows>=2.0.0dev3,<3.0.0",
     "pytest>=7.1.2",

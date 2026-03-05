@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
 from deepmerge import always_merger
+from flask_principal import Identity, Need, UserNeed
 from flask_security import login_user
 from invenio_accounts.testutils import login_user_via_session
 from invenio_app.factory import create_api
@@ -122,15 +123,6 @@ def prepare_record_data(default_record_json: dict[str, Any]) -> PrepareRecordDat
     return _merge_record_data
 
 
-"""
-@pytest.fixture
-def vocab_cf(app: Flask, db: SQLAlchemy, cache) -> None:
-    from oarepo_runtime.services.custom_fields.mappings import prepare_cf_indices
-
-    prepare_cf_indices()
-"""
-
-
 class LoggedClient:
     """Logged client."""
 
@@ -173,3 +165,13 @@ def logged_client(client: FlaskClient) -> Callable[[UserFixtureBase], LoggedClie
         return LoggedClient(client, user)
 
     return _logged_client
+
+
+@pytest.fixture(scope="module")
+def identity_simple() -> Identity:
+    """Provide simple identity fixture."""
+    i = Identity(1)
+    i.provides.add(UserNeed(1))
+    i.provides.add(Need(method="system_role", value="any_user"))
+    i.provides.add(Need(method="system_role", value="authenticated_user"))
+    return i

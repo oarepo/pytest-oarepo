@@ -14,23 +14,15 @@ from typing import TYPE_CHECKING, Any, Literal, Protocol
 import pytest
 from deepmerge import always_merger
 from invenio_access.permissions import system_identity
-from invenio_accounts.models import Role
-from invenio_accounts.proxies import current_datastore
 from invenio_records_permissions.generators import SystemProcess
-from invenio_records_resources.services.errors import PermissionDeniedError
 from invenio_requests.records.api import RequestEventFormat
 from invenio_requests.services.generators import Receiver
-from invenio_users_resources.proxies import current_groups_service
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from flask_principal import Identity
-    from invenio_db.shared import SQLAlchemy
     from invenio_records_resources.services import RecordService
     from invenio_requests.services.requests import RequestItem
     from invenio_requests.services.requests.service import RequestsService
-    from pytest_invenio.user import UserFixtureBase
 
 can_comment_only_receiver = [
     Receiver(),
@@ -82,58 +74,6 @@ class SubmitRequestFn(Protocol):
         expand: bool = ...,
     ) -> RequestItem:  # type: ignore[reportReturnType]
         """Create and submit request of specific type on a specific record."""
-
-
-def _create_role(id_: str, name: str, description: str, is_managed: bool) -> Role:
-    """Create a Role/Group."""
-    r = current_datastore.create_role(id=id_, name=name, description=description, is_managed=is_managed)
-    current_datastore.commit()
-    return r
-
-
-@pytest.fixture
-def role() -> Role:
-    """Create a Role/Group."""
-    return _create_role(
-        id_="it-dep",
-        name="it-dep",
-        description="IT Department",
-        is_managed=False,
-    )
-
-
-@pytest.fixture
-def add_user_in_role(db: SQLAlchemy) -> Callable[[UserFixtureBase, Role | str], None]:
-    """Add user to role or creates it if it doesn't exist."""
-
-    def _add_user_in_role(user: UserFixtureBase, role_or_role_name: Role | str) -> None:
-        if isinstance(role_or_role_name, str):
-            try:
-                role = current_groups_service.read(system_identity, role_or_role_name)._group.model.model_obj  # noqa SLF001
-            except PermissionDeniedError:  # missing group in db raises this
-                role = Role(name=role_or_role_name)
-                db.session.add(role_or_role_name)
-        else:
-            role = role_or_role_name
-        # TODO: UserFixtureBase is not typed
-        user.user.roles.append(role)  # type: ignore[reportOptionalMemberAccess]
-        db.session.commit()
-
-    return _add_user_in_role
-
-
-@pytest.fixture
-def role_ui_serialization(host: str) -> dict[str, Any]:
-    """UI serialization of the example role in role fixture."""
-    return {
-        "label": "it-dep",
-        "links": {
-            "avatar": f"{host}api/groups/it-dep/avatar.svg",
-            "self": f"{host}api/groups/it-dep",
-        },
-        "reference": {"group": "it-dep"},
-        "type": "group",
-    }
 
 
 @pytest.fixture

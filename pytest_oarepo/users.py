@@ -15,6 +15,7 @@ import os
 from typing import TYPE_CHECKING
 
 import pytest
+from invenio_access import ActionUsers
 from sqlalchemy.exc import IntegrityError
 
 from pytest_oarepo.functions import _index_users
@@ -148,3 +149,24 @@ def user_with_cs_locale(
     db.session.commit()
     _index_users()
     return u
+
+
+@pytest.fixture
+def user_with_administration_rights(app, db, UserFixture, password):  # noqa N803
+    """Set administration rights to the first user and return it."""
+    user = UserFixture(
+        email="admin@example.org",
+        password=password,
+        active=True,
+        confirmed=True,
+        user_profile={
+            "affiliations": "cesnet",
+        },
+        preferences={"locale": "en", "visibility": "public"},
+    )
+    user.create(app, db)
+    actions = app.extensions["invenio-access"].actions
+    act = ActionUsers.allow(actions["administration-access"], user_id=user.user.id)
+    db.session.add(act)
+    db.session.commit()
+    return user
