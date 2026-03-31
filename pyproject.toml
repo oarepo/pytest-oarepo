@@ -5,7 +5,7 @@ description = ""
 readme = "README.md"
 license = "MIT"
 
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 
 dependencies = [
     "oarepo[rdm,tests]>=14.0.0,<15.0.0",
@@ -19,6 +19,7 @@ Homepage = "https://github.com/oarepo/pytest_oarepo"
 dev = [
     "oarepo-runtime>=2.0.0dev13,<3.0.0",
     "oarepo-workflows>=2.0.0dev3,<3.0.0",
+    "oarepo-requests>=3.0.0dev5,<4.0.0",
     "pytest>=7.1.2",
 ]
 tests = [

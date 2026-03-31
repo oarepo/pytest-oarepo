@@ -28,6 +28,10 @@ if TYPE_CHECKING:
     from pytest_invenio.user import UserFixtureBase
     from werkzeug.test import TestResponse
 
+pytest_plugins = [
+    "pytest_oarepo.users",
+]
+
 
 @pytest.fixture(scope="module")
 def create_app(instance_path: str, entry_points: Generator[None]) -> Callable[..., Flask]:  # noqa: ARG001
@@ -167,11 +171,50 @@ def logged_client(client: FlaskClient) -> Callable[[UserFixtureBase], LoggedClie
     return _logged_client
 
 
-@pytest.fixture(scope="module")
-def identity_simple() -> Identity:
+@pytest.fixture
+def identity_simple(users: list[UserFixtureBase]) -> Identity:
     """Provide simple identity fixture."""
-    i = Identity(1)
-    i.provides.add(UserNeed(1))
+    user = users[0]
+    i = Identity(user.id)
+    i.provides.add(UserNeed(user.id))
     i.provides.add(Need(method="system_role", value="any_user"))
     i.provides.add(Need(method="system_role", value="authenticated_user"))
     return i
+
+
+@pytest.fixture(scope="module")
+def app_config(app_config: dict[str, Any]) -> dict[str, Any]:
+    """Set common boilerplate app config defaults used across OARepo test suites."""
+    app_config["JSONSCHEMAS_HOST"] = "localhost"
+    app_config["RECORDS_REFRESOLVER_CLS"] = "invenio_records.resolver.InvenioRefResolver"
+    app_config["RECORDS_REFRESOLVER_STORE"] = "invenio_jsonschemas.proxies.current_refresolver_store"
+    app_config["RATELIMIT_AUTHENTICATED_USER"] = "200 per second"
+    app_config["CACHE_TYPE"] = "SimpleCache"
+    app_config["CACHE_DEFAULT_TIMEOUT"] = 300
+    app_config["FILES_REST_STORAGE_CLASS_LIST"] = {
+        "L": "Local",
+        "F": "Fetch",
+        "R": "Remote",
+    }
+    app_config["FILES_REST_DEFAULT_STORAGE_CLASS"] = "L"
+    return app_config
+
+
+@pytest.fixture(scope="session")
+def model_types() -> dict[str, Any]:
+    """Return common model type definitions for test record models."""
+    return {
+        "Metadata": {
+            "properties": {
+                "title": {"type": "fulltext+keyword", "required": True},
+                "creators": {
+                    "type": "array",
+                    "items": {"type": "keyword"},
+                },
+                "contributors": {
+                    "type": "array",
+                    "items": {"type": "keyword"},
+                },
+            }
+        }
+    }
