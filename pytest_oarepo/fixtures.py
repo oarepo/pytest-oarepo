@@ -11,7 +11,9 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any, Protocol
+import re
+from typing import TYPE_CHECKING, Any, Protocol, cast
+from urllib import parse
 
 import pytest
 from deepmerge import always_merger
@@ -218,3 +220,79 @@ def model_types() -> dict[str, Any]:
             }
         }
     }
+
+
+class URLNormalizer[T](Protocol):
+    """URL normalizer protocol."""
+
+    def __call__(
+        self,
+        data: T,
+        *,
+        remove_api_prefix: bool = True,
+        replacements: dict[str, str] | None = None,
+    ) -> T:
+        """Normalize the URL."""
+        ...
+
+
+@pytest.fixture
+def normalize_urls[T]() -> URLNormalizer[T]:  # noqa C901
+    """Normalize URLs in the data structure, optionally removing the `/api/` prefix.
+
+    Normalization:
+        1. Remove protocol, server and port from the URL.
+        2. Optionally remove the `/api/` prefix from the path.
+        3. For query parameters, sort by parameter name
+        4. Optionally replace string values in the URL from the replacements table.
+        Key is a regex pattern, value is the replacement string.
+    """
+
+    def _replace_in_string(
+        s: str,
+        remove_api_prefix: bool = True,
+        replacements: dict[str, str] | None = None,
+    ) -> str:
+        if s.startswith("http://"):
+            s = s[7:]
+        elif s.startswith("https://"):
+            s = s[8:]
+        else:
+            return s
+
+        if replacements is not None:
+            for k, v in replacements.items():
+                s = re.sub(k, v, s)
+
+        url_parts = parse.urlparse(s)
+        path = url_parts.path
+        query = url_parts.query
+
+        if remove_api_prefix and path.startswith("/api"):
+            path = path[4:]
+
+        if query:
+            query_list = sorted(parse.parse_qsl(query))
+            query = "&".join(f"{k}={v}" for k, v in query_list)
+            s = f"{parse.quote(path)}?{parse.quote(query)}"
+
+        return s
+
+    def _normalize_urls(
+        d: Any,
+        *,
+        remove_api_prefix: bool = True,
+        replacements: dict[str, str] | None = None,
+    ) -> Any:
+
+        if isinstance(d, dict):
+            for k, v in list(d.items()):
+                d[k] = _normalize_urls(v, remove_api_prefix=remove_api_prefix, replacements=replacements)
+        elif isinstance(d, list):
+            for idx, v in enumerate(d):
+                d[idx] = _normalize_urls(v, remove_api_prefix=remove_api_prefix, replacements=replacements)
+        elif isinstance(d, str):
+            return _replace_in_string(d, remove_api_prefix=remove_api_prefix, replacements=replacements)
+        return d
+
+    return cast("URLNormalizer[T]", _normalize_urls)
