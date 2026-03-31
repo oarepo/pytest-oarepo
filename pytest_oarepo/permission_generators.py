@@ -16,33 +16,20 @@ from flask_principal import ActionNeed, Need, UserNeed
 from invenio_accounts.models import User
 from invenio_search.engine import dsl
 from oarepo_runtime.services.generators import Generator
-from oarepo_workflows.requests import RecipientGeneratorMixin
 
 if TYPE_CHECKING:
-    from collections.abc import Collection, Mapping
-
-    from invenio_records_resources.records import Record
-    from invenio_requests.customizations import RequestType
+    from collections.abc import Collection
 
 
-class SystemUserGenerator(RecipientGeneratorMixin, Generator):
+class SystemUserGenerator(Generator):
     """Generator primarily used to define system user as recipient of a request."""
 
     @override
     def needs(self, **kwargs: Any) -> Collection[Need]:
         return [UserNeed("system")]
 
-    @override
-    def reference_receivers(
-        self,
-        record: Record | None = None,
-        request_type: RequestType | None = None,
-        **context: Any,
-    ) -> list[Mapping[str, str]]:
-        return [{"user": "system"}]
 
-
-class UserGenerator(RecipientGeneratorMixin, Generator):
+class UserGenerator(Generator):
     """Generator primarily used to define specific user as recipient of a request."""
 
     def __init__(self, user_email: str) -> None:
@@ -58,17 +45,8 @@ class UserGenerator(RecipientGeneratorMixin, Generator):
     def needs(self, **kwargs: Any) -> Collection[Need]:
         return [UserNeed(self._user_id)]
 
-    @override
-    def reference_receivers(
-        self,
-        record: Record | None = None,
-        request_type: RequestType | None = None,
-        **context: Any,
-    ) -> list[Mapping[str, str]]:
-        return [{"user": str(self._user_id)}]
 
-
-class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
+class CSLocaleUserGenerator(Generator):
     """Generator primarily used to define specific user as recipient of a request."""
 
     @property
@@ -82,15 +60,6 @@ class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
     @override
     def needs(self, **kwargs: Any) -> Collection[Need]:
         return [UserNeed(self._user_id)]
-
-    @override
-    def reference_receivers(
-        self,
-        record: Record | None = None,
-        request_type: RequestType | None = None,
-        **context: Any,
-    ) -> list[Mapping[str, str]]:
-        return [{"user": str(self._user_id)}]
 
 
 class UserExcluded(Generator):
