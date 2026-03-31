@@ -45,8 +45,8 @@ class SystemUserGenerator(RecipientGeneratorMixin, Generator):
 class UserGenerator(RecipientGeneratorMixin, Generator):
     """Generator primarily used to define specific user as recipient of a request."""
 
-    @override
     def __init__(self, user_email: str) -> None:
+        """Construct the generator."""
         self.user_email = user_email
 
     @property
@@ -91,6 +91,23 @@ class CSLocaleUserGenerator(RecipientGeneratorMixin, Generator):
         **context: Any,
     ) -> list[Mapping[str, str]]:
         return [{"user": str(self._user_id)}]
+
+
+class UserExcluded(Generator):
+    """Generator that excludes a specific user by email."""
+
+    def __init__(self, user_email: str) -> None:
+        """Construct the generator."""
+        self.user_email = user_email
+
+    @property
+    def _user_id(self) -> int:
+        # id is Integer column
+        return cast("int", User.query.filter_by(email=self.user_email).one().id)
+
+    @override
+    def excludes(self, **kwargs: Any) -> Collection[Need]:
+        return [UserNeed(self._user_id)]
 
 
 class Administration(Generator):

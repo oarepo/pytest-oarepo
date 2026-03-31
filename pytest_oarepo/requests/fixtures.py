@@ -77,6 +77,22 @@ class SubmitRequestFn(Protocol):
 
 
 @pytest.fixture
+def requests_service() -> RequestsService:
+    """Return current requests service proxy."""
+    from oarepo_requests.proxies import current_requests_service
+
+    return current_requests_service  # type: ignore [return-value]
+
+
+@pytest.fixture
+def requests_events_service():  # noqa: ANN201
+    """Return current request events service proxy."""
+    from invenio_requests.proxies import current_events_service
+
+    return current_events_service
+
+
+@pytest.fixture
 def events_resource_data() -> dict[str, Any]:
     """Fixture for adding required input data default values for events."""
     return {
