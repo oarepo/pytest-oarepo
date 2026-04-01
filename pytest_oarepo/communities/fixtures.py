@@ -83,22 +83,22 @@ def init_communities_cf(app: Flask, cache: Any) -> None:  # noqa ARG001
 def community(
     app: Flask,  # noqa ARG001
     community_owner: UserFixtureBase,
-    community_get_or_create: CommunityGetOrCreateFn,
+    community_get_or_create_in_default_workflow: CommunityGetOrCreateWithoutWorkflowArgsFn,
 ) -> Community:
     """Return basic community."""
-    return community_get_or_create(community_owner)
+    return community_get_or_create_in_default_workflow(community_owner)
 
 
 @pytest.fixture
 def communities(
     app: Flask,  # noqa ARG001
     community_owner: UserFixtureBase,
-    community_get_or_create: CommunityGetOrCreateFn,
+    community_get_or_create_in_default_workflow: CommunityGetOrCreateWithoutWorkflowArgsFn,
 ) -> dict[str, Community]:
     """Return two communities."""
     return {
-        "aaa": community_get_or_create(community_owner, slug="aaa"),
-        "bbb": community_get_or_create(community_owner, slug="bbb"),
+        "aaa": community_get_or_create_in_default_workflow(community_owner, slug="aaa"),
+        "bbb": community_get_or_create_in_default_workflow(community_owner, slug="bbb"),
     }
 
 
