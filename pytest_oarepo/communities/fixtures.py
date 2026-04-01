@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
 import pytest
@@ -125,23 +126,22 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
         allowed_workflows: list[str] | None = None,
     ) -> Community:
         """Util to get or create community, to avoid duplicate error."""
-        community_dict = community_dict or minimal_community
+        if not community_dict:
+            community_dict = copy.deepcopy(minimal_community)
         slug = slug or community_dict["slug"]
         if not isinstance(slug, str):
             raise TypeError("Slug must be a string")
         community_dict["slug"] = slug
         if workflow:
-            community_dict["custom_fields"]["workflow"] = workflow
+            community_dict.setdefault("custom_fields", {})["workflow"] = workflow
         if allowed_workflows:
-            community_dict["custom_fields"]["allowed_workflows"] = allowed_workflows
+            community_dict.setdefault("custom_fields", {})["allowed_workflows"] = allowed_workflows
         try:
             c = current_communities.service.record_cls.pid.resolve(slug)
         except PIDDoesNotExistError:
             c = current_communities.service.create(
                 community_owner.identity,
-                {
-                    **community_dict,
-                },
+                community_dict,
             )
             c = c._obj  # noqa SLF001
             Community.index.refresh()  # type: ignore[reportAttributeAccessIssue]
