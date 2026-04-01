@@ -43,6 +43,18 @@ class CommunityGetOrCreateFn(Protocol):
         """Get or create community."""
 
 
+class CommunityGetOrCreateWithoutWorkflowArgsFn(Protocol):
+    """Function returning existing community or creating new one without input workflow args."""
+
+    def __call__(
+        self,
+        community_owner: UserFixtureBase,
+        slug: str | None = ...,
+        community_dict: dict[str, Any] | None = ...,
+    ) -> Community:  # type: ignore[reportReturnType]
+        """Get or create community."""
+
+
 @pytest.fixture
 def minimal_community() -> dict[str, Any]:
     """Return default data used for creating a new community."""
@@ -118,6 +130,10 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
         if not isinstance(slug, str):
             raise TypeError("Slug must be a string")
         community_dict["slug"] = slug
+        if workflow:
+            community_dict["custom_fields"]["workflow"] = workflow
+        if allowed_workflows:
+            community_dict["custom_fields"]["allowed_workflows"] = allowed_workflows
         try:
             c = current_communities.service.record_cls.pid.resolve(slug)
         except PIDDoesNotExistError:
@@ -125,10 +141,6 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
                 community_owner.identity,
                 {
                     **community_dict,
-                    "custom_fields": {
-                        "workflow": workflow or "default",
-                        "allowed_workflows": allowed_workflows or ["default"],
-                    },
                 },
             )
             c = c._obj  # noqa SLF001
@@ -137,6 +149,23 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
             community_owner._identity = None  # noqa SLF001
 
         return cast("Community", c)
+
+    return _get_or_create
+
+
+@pytest.fixture
+def community_get_or_create_in_default_workflow(
+    community_get_or_create: CommunityGetOrCreateFn,
+) -> CommunityGetOrCreateWithoutWorkflowArgsFn:
+    """Return existing community or creating new one if one with the same slug doesn't exist."""
+
+    def _get_or_create(
+        community_owner: UserFixtureBase, slug: str | None = None, community_dict: dict[str, Any] | None = None
+    ) -> Community:
+        """Util to get or create community, to avoid duplicate error."""
+        return community_get_or_create(
+            community_owner, slug, community_dict, workflow="default", allowed_workflows=["default"]
+        )
 
     return _get_or_create
 
