@@ -10,10 +10,14 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
 from invenio_access.permissions import system_identity
+
+log = logging.getLogger(__name__)
+
 
 if TYPE_CHECKING:
     from flask_principal import Identity
@@ -82,6 +86,8 @@ def draft_factory(record_service: RecordService, prepare_record_data: PrepareRec
 
         json = prepare_record_data(custom_data, custom_workflow, additional_data)
         draft = record_service.create(identity=identity, data=json, expand=expand, **service_kwargs)
+        if draft.errors:
+            log.error("Warning: draft created with errors: %s", draft.errors)
         # TODO: to_dict() is typed as dict[str, Any] in RecordItem, idk why it complains here
         # unified interface
         return draft.to_dict()  # type: ignore[no-any-return]
