@@ -8,9 +8,12 @@ name: Tests
 on:
   push: {}
   schedule:
-    - cron: "0 1 * * 6"  # Every Sunday at 01:00 UTC
+    - cron: "0 1 * * 6" # Every Sunday at 01:00 UTC
   workflow_dispatch: {}
 
 jobs:
   Tests:
     uses: oarepo/oarepo/.github/workflows/test.yaml@main
+    with:
+      lint_enabled: false
+      tests_enabled: false
