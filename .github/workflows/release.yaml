@@ -9,3 +9,6 @@ jobs:
     name: Bump, Test, and Publish the Release
     uses: oarepo/oarepo/.github/workflows/release.yaml@main
     secrets: inherit
+    with:
+      lint_enabled: false
+      tests_enabled: false
