@@ -56,7 +56,7 @@ come from the application under test.
 # pyproject.toml of the consuming project
 [project]
 dependencies = [
-    "pytest-oarepo>=3.0.0,<4.0.0",
+    "pytest-oarepo>=6.0.0,<7.0.0",
 ]
 ```
 
@@ -64,10 +64,10 @@ Key transitive dependencies (resolved automatically):
 
 | Package | Version range |
 |---|---|
-| `oarepo[rdm,tests]` | `>=14,<15` |
+| `oarepo[rdm,tests]` | `>=14.2.1b10.dev7,<15.0.0` |
 | `invenio-app` | `>=3,<4` |
-| `invenio-communities` | `>=25,<26` |
-| `invenio-drafts-resources` | `>=8,<9` |
+| `invenio-communities` | `>=28.0.0,<29.0.0` |
+| `invenio-drafts-resources` | `>=10.0.0,<11.0.0` |
 | `invenio-search` | `>=3,<4` |
 | `pytest-invenio` | `>=4,<5` |
 | `deepmerge` | any |
