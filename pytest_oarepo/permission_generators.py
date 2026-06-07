@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING, Any, cast, override
 
 from flask_principal import ActionNeed, Need, UserNeed
 from invenio_accounts.models import User
+from invenio_records_permissions.generators import Generator
 from invenio_search.engine import dsl
-from oarepo_runtime.services.generators import Generator
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -52,7 +52,11 @@ class CSLocaleUserGenerator(Generator):
     @property
     def _user_id(self) -> int:
         users = User.query.all()
-        users = [user for user in users if "locale" in user.preferences and user.preferences["locale"] == "cs"]
+        users = [
+            user
+            for user in users
+            if "locale" in user.preferences and user.preferences["locale"] == "cs"
+        ]
         if users:
             return cast("int", users[0].id)
         raise ValueError("No CS locale user found")
