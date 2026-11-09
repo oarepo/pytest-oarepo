@@ -9,18 +9,17 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
 from invenio_access.permissions import system_identity
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 if TYPE_CHECKING:
     from flask_principal import Identity
-    from invenio_drafts_resources.services import RecordService
 
-    from pytest_oarepo.fixtures import PrepareRecordDataFn
 
 
 class CreateCommunityRecordFn(Protocol):
     """Callable to create a record in a community."""
 
-    def __call__(
+    def __call__(  # noqa PLR0913
         self,
         identity: Identity,
         community_id: str,
@@ -30,86 +29,65 @@ class CreateCommunityRecordFn(Protocol):
         custom_workflow: str | None = ...,
         expand: bool = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
         """Create a record in a community."""
 
 
 @pytest.fixture
-def draft_with_community_factory(
-    record_service: RecordService,
-    base_model_schema: str,
-    prepare_record_data: PrepareRecordDataFn,
-) -> CreateCommunityRecordFn:
-    """Call to instance draft in a community."""
+def submit_review():
+    def _submit_review(identity, draft_id: str) -> dict:
+        return current_rdm_records_service.review.submit(identity, draft_id).to_dict()
 
-    def record(
-        identity: Identity,
-        community_id: str,
-        model_schema: str | None = None,
-        custom_data: dict[str, Any] | None = None,
-        additional_data: dict[str, Any] | None = None,
-        custom_workflow: str | None = None,
-        expand: bool = False,
-        **service_kwargs: Any,
-    ) -> dict[str, Any]:
-        """Create instance of a draft in a community.
-
-        :param identity: Identity of the caller.
-        :param community_id: ID of the community.
-        :param model_schema: Optional model schema if using different than defined in base_model_schema fixture.
-        :param custom_data: If defined, the default record data are overwritten.
-        :param additional_data: If defined, the additional data are merged with the default data.
-        :param custom_workflow: Define to use custom workflow.
-        :param expand: Expand the response.
-        :param service_kwargs: Additional keyword arguments to pass to the service.
-        """
-        additional_data = additional_data or {}
-        if "$schema" not in additional_data:
-            additional_data["$schema"] = model_schema or base_model_schema
-        json = prepare_record_data(
-            custom_data, custom_workflow, additional_data, add_default_workflow=False
-        )  # default workflow taken from community
-        json.setdefault("parent", {}).setdefault("communities", {})["default"] = community_id
-        draft = record_service.create(
-            identity=identity,
-            data=json,
-            expand=expand,
-            **service_kwargs,
-        )
-        return draft.to_dict()
-
-    return record
+    return _submit_review
 
 
 @pytest.fixture
-def published_record_with_community_factory(
-    record_service: RecordService,
-    draft_with_community_factory: CreateCommunityRecordFn,
-) -> CreateCommunityRecordFn:
-    """Call to instance published record in a community."""
+def draft_with_community_submission_factory(record_service, base_model_schema, prepare_record_data, upload_file):
+    """Override pytest-oarepo's factory: a draft with a not yet submitted community-submission review.
 
-    def _published_record_with_community(
-        identity: Identity,
+    As in the Invenio review process, the draft is not in the community until the review is accepted.
+    """
+
+    def _create(
+        identity,
         community_id: str,
         model_schema: str | None = None,
-        custom_data: dict[str, Any] | None = None,
-        additional_data: dict[str, Any] | None = None,
+        custom_data: dict | None = None,
+        additional_data: dict | None = None,
         custom_workflow: str | None = None,
         expand: bool = False,
-        **service_kwargs: Any,
-    ) -> dict[str, Any]:
-        """Create instance of a published record in a community.
+        **service_kwargs,
+    ) -> dict:
+        additional_data = {"$schema": model_schema or base_model_schema, **(additional_data or {})}
+        data = prepare_record_data(custom_data, custom_workflow, additional_data, add_default_workflow=False)
+        draft = record_service.create(identity=identity, data=data, **service_kwargs)
+        # files.enabled=False is applied only for identities that can manage files, the others must upload
+        # a file, otherwise accepting the review fails
+        if draft.data["files"]["enabled"]:
+            upload_file(identity=identity, record_id=draft.id, files_service=record_service.draft_files)
+        current_rdm_records_service.review.update(
+            identity, draft.id, {"receiver": {"community": community_id}, "type": "community-submission"}
+        )
+        return record_service.read_draft(identity, draft.id, expand=expand).to_dict()
 
-        :param identity: Identity of the caller.
-        :param community_id: ID of the community.
-        :param model_schema: Optional model schema if using different than defined in base_model_schema fixture.
-        :param custom_data: If defined, the default record data are overwritten.
-        :param additional_data: If defined, the additional data are merged with the default data.
-        :param custom_workflow: Define to use custom workflow.
-        :param expand: Expand the response.
-        :param service_kwargs: Additional keyword arguments to pass to the service.
-        """
-        draft = draft_with_community_factory(
+    return _create
+
+
+@pytest.fixture
+def published_record_with_community_factory(record_service, draft_with_community_submission_factory, submit_review):
+    """Override pytest-oarepo's factory: a record published by accepting its community-submission review."""
+
+    def _create(
+        identity,
+        community_id: str,
+        model_schema: str | None = None,
+        custom_data: dict | None = None,
+        additional_data: dict | None = None,
+        custom_workflow: str | None = None,
+        expand: bool = False,
+        **service_kwargs,
+    ) -> dict:
+        draft = draft_with_community_submission_factory(
             identity,
             community_id,
             model_schema=model_schema,
@@ -118,7 +96,10 @@ def published_record_with_community_factory(
             custom_workflow=custom_workflow,
             **service_kwargs,
         )
-        record = record_service.publish(system_identity, draft["id"], expand=expand)
-        return record.to_dict()
+        review = submit_review(identity, draft["id"])
+        # submissions of community curators are accepted directly on submit
+        if review["status"] != "accepted":
+            current_requests_service.execute_action(system_identity, review["id"], "accept", send_notification=False)
+        return record_service.read(identity, draft["id"], expand=expand).to_dict()
 
-    return _published_record_with_community
+    return _create
