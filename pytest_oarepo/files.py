@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2025 CESNET z.s.p.o.
-#
-# This file is a part of pytest-oarepo (see https://github.com/oarepo/pytest_oarepo).
-#
-# pytest-oarepo is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2025 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Test fixtures for working with files."""
 
 from __future__ import annotations
@@ -69,6 +64,6 @@ def upload_file(file_metadata: dict[str, Any]) -> UploadFileFn:
             ],
         )
         files_service.set_file_content(identity, record_id, file_name, stream=BytesIO(b"testfile"))
-        return cast("FileItem", files_service.commit_file(identity, record_id, file_name))
+        return files_service.commit_file(identity, record_id, file_name)
 
     return _upload_file
