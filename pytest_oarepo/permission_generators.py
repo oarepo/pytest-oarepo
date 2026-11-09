@@ -1,11 +1,6 @@
-#
-# Copyright (c) 2026 CESNET z.s.p.o.
-#
-# This file is a part of pytest-oarepo (see https://github.com/oarepo/pytest_oarepo).
-#
-# pytest-oarepo is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#
+# SPDX-FileCopyrightText: 2026 CESNET z.s.p.o
+# SPDX-License-Identifier: MIT
+
 """Test permission generators."""
 
 from __future__ import annotations
@@ -52,11 +47,7 @@ class CSLocaleUserGenerator(Generator):
     @property
     def _user_id(self) -> int:
         users = User.query.all()
-        users = [
-            user
-            for user in users
-            if "locale" in user.preferences and user.preferences["locale"] == "cs"
-        ]
+        users = [user for user in users if "locale" in user.preferences and user.preferences["locale"] == "cs"]
         if users:
             return cast("int", users[0].id)
         raise ValueError("No CS locale user found")

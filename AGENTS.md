@@ -85,10 +85,10 @@ dotted module path that pytest will import as a plugin.
 
 ```python
 pytest_plugins = [
-    "pytest_oarepo.fixtures",   # app_config, logged_client, prepare_record_data, …
-    "pytest_oarepo.users",      # users, password, user_with_administration_rights, …
-    "pytest_oarepo.records",    # draft_factory, record_factory, record_with_files_factory
-    "pytest_oarepo.files",      # upload_file, file_metadata
+    "pytest_oarepo.fixtures",  # app_config, logged_client, prepare_record_data, …
+    "pytest_oarepo.users",  # users, password, user_with_administration_rights, …
+    "pytest_oarepo.records",  # draft_factory, record_factory, record_with_files_factory
+    "pytest_oarepo.files",  # upload_file, file_metadata
 ]
 ```
 
@@ -159,9 +159,11 @@ Minimal example:
 import pytest
 from myapp.proxies import current_myapp_service
 
+
 @pytest.fixture
 def record_service():
     return current_myapp_service
+
 
 @pytest.fixture
 def base_model_schema():
@@ -453,6 +455,7 @@ def test_create_draft(draft_factory, users):
     draft = draft_factory(users[0].identity)
     assert draft["id"]
 
+
 def test_draft_custom_workflow(draft_factory, users):
     draft = draft_factory(users[0].identity, custom_workflow="with_approve")
     assert draft["parent"]["workflow"]["id"] == "with_approve"
@@ -601,7 +604,7 @@ Returns the expected UI-serialized form of the `it-dep` role:
     "label": "it-dep",
     "links": {
         "avatar": "https://127.0.0.1:5000/api/groups/it-dep/avatar.svg",
-        "self":   "https://127.0.0.1:5000/api/groups/it-dep",
+        "self": "https://127.0.0.1:5000/api/groups/it-dep",
     },
     "reference": {"group": "it-dep"},
     "type": "group",
@@ -659,7 +662,7 @@ def events_resource_data() -> dict
 {
     "payload": {
         "content": "This is an event.",
-        "format": "html",   # RequestEventFormat.HTML.value
+        "format": "html",  # RequestEventFormat.HTML.value
     }
 }
 ```
@@ -1058,7 +1061,7 @@ value (recursively). Extra keys in `dict_` are allowed.
 
 ```python
 assert is_valid_subdict({"a": 1}, {"a": 1, "b": 2})  # True
-assert not is_valid_subdict({"a": 9}, {"a": 1})       # False
+assert not is_valid_subdict({"a": 9}, {"a": 1})  # False
 ```
 
 #### `clear_babel_context() -> None`
@@ -1272,9 +1275,11 @@ pytest_plugins = [
     "pytest_oarepo.roles",
 ]
 
+
 @pytest.fixture(scope="module")
 def record_service():
     return current_myrecords_service
+
 
 @pytest.fixture(scope="module")
 def app_config(app_config):
@@ -1296,13 +1301,16 @@ pytest_plugins = [
     "pytest_oarepo.communities.records",
 ]
 
+
 @pytest.fixture
 def record_service():
     return current_myrecords_service
 
+
 @pytest.fixture
 def base_model_schema():
     return "local://mymodel/mymodel-1.0.0.json"
+
 
 @pytest.fixture(autouse=True)
 def setup_communities_cf(init_communities_cf):
@@ -1353,7 +1361,7 @@ When overriding `app_config`, always call `super()` by accepting the
 
 ```python
 @pytest.fixture(scope="module")
-def app_config(app_config):          # receives the pytest-oarepo version
+def app_config(app_config):  # receives the pytest-oarepo version
     app_config["MY_SETTING"] = True  # extend it
     return app_config
 ```
@@ -1384,6 +1392,7 @@ def app_config(app_config):          # receives the pytest-oarepo version
    these fixtures, call `_index_users()` yourself:
    ```python
    from pytest_oarepo.functions import _index_users
+
    _index_users()
    ```
 
