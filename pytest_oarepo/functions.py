@@ -13,7 +13,7 @@ from invenio_users_resources.proxies import current_users_service
 
 def _dict_diff(dict1: dict, dict2: dict, path: str = "") -> dict[str, list[str]]:
     ret = defaultdict(list)
-    for key in dict1:  # noqa PLC0206
+    for key in dict1:
         # Construct path to current element
         new_path = key if path == "" else f"{path}.{key}"
 
@@ -59,4 +59,4 @@ def clear_babel_context() -> None:
         from flask_babel import SimpleNamespace
     except ImportError:
         return
-    g._flask_babel = SimpleNamespace()  # noqa: SLF001
+    g._flask_babel = SimpleNamespace()

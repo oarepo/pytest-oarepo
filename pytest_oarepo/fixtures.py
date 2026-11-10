@@ -29,9 +29,9 @@ pytest_plugins = [
 
 
 @pytest.fixture(scope="module")
-def create_app(instance_path: str, entry_points: Generator[None]) -> Callable[..., Flask]:  # noqa: ARG001
+def create_app(instance_path: str, entry_points: Generator[None]) -> Callable[..., Flask]:
     """Application factory fixture."""
-    return create_api  # type: ignore [no-any-return]
+    return create_api
 
 
 @pytest.fixture
@@ -87,7 +87,7 @@ class PrepareRecordDataFn(Protocol):
         custom_workflow: str | None = ...,
         additional_data: dict[str, Any] | None = ...,
         add_default_workflow: bool = ...,
-    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
+    ) -> dict[str, Any]:
         """Call to merge input definitions into data passed to record service."""
 
 

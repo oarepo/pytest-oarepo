@@ -33,14 +33,14 @@ class CreateRecordFn(Protocol):
         custom_workflow: str | None = ...,
         expand: bool = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
+    ) -> dict[str, Any]:
         """Create instance of a record."""
 
 
 class CreateRecordWithFilesFn(Protocol):
     """Callable to create a record with a file."""
 
-    def __call__(  # noqa PLR0913
+    def __call__(
         self,
         identity: Identity,
         custom_data: dict[str, Any] | None = ...,
@@ -50,7 +50,7 @@ class CreateRecordWithFilesFn(Protocol):
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
+    ) -> dict[str, Any]:
         """Create instance of a record with a file."""
 
 
@@ -65,7 +65,7 @@ def draft_factory(record_service: RecordService, prepare_record_data: PrepareRec
         custom_workflow: str | None = None,
         expand: bool = False,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
+    ) -> dict[str, Any]:
         """Create instance of a draft.
 
         :param identity: Identity of the caller.
@@ -85,7 +85,7 @@ def draft_factory(record_service: RecordService, prepare_record_data: PrepareRec
             log.error("Warning: draft created with errors: %s", draft.errors)
         # TODO: to_dict() is typed as dict[str, Any] in RecordItem, idk why it complains here
         # unified interface
-        return draft.to_dict()  # type: ignore[no-any-return]
+        return draft.to_dict()
 
     return draft
 
@@ -119,7 +119,7 @@ def record_factory(record_service: RecordService, draft_factory: CreateRecordFn)
             **service_kwargs,
         )
         record = record_service.publish(system_identity, draft["id"], expand=expand)
-        return record.to_dict()  # type: ignore[no-any-return]
+        return record.to_dict()
 
     return record
 
@@ -133,15 +133,15 @@ def record_with_files_factory(
 ) -> CreateRecordWithFilesFn:
     """Call to instance a published record with a file."""
 
-    def record(  # noqa PLR0913
+    def record(
         identity: Identity,
         custom_data: dict[str, Any] | None = None,
         additional_data: dict[str, Any] | None = None,
         custom_workflow: str | None = None,
         expand: bool = False,
         # kept for API parity
-        file_name: str = "test.pdf",  # noqa ARG001
-        custom_file_metadata: dict[str, Any] | None = None,  # noqa ARG001
+        file_name: str = "test.pdf",
+        custom_file_metadata: dict[str, Any] | None = None,
         **service_kwargs: Any,
     ) -> dict[str, Any]:
         """Create instance of a published record.
@@ -167,13 +167,13 @@ def record_with_files_factory(
             **service_kwargs,
         )
         # _draft_files is not typed
-        files_service = record_service._draft_files  # type: ignore[reportAttributeAccessIssue]  # noqa: SLF001
+        files_service = record_service._draft_files  # ty: ignore[unresolved-attribute]
         upload_file(identity, draft["id"], files_service)
         record = record_service.publish(
             system_identity,
             draft["id"],
             expand=expand,
         )
-        return record.to_dict()  # type: ignore[no-any-return]
+        return record.to_dict()
 
     return record

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol
 
 import pytest
 
@@ -26,7 +26,7 @@ class UploadFileFn(Protocol):
         files_service: FileService,
         file_name: str = ...,
         custom_file_metadata: dict[str, Any] | None = ...,
-    ) -> FileItem:  # type: ignore[reportReturnType]
+    ) -> FileItem:
         """Upload a file to a record."""
 
 
