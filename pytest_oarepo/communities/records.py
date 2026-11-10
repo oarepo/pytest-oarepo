@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any, Protocol
 import pytest
 from invenio_access.permissions import system_identity
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_requests.proxies import current_requests_service
 
 if TYPE_CHECKING:
     from flask_principal import Identity
-
 
 
 class CreateCommunityRecordFn(Protocol):
