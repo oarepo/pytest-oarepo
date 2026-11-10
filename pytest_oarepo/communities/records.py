@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class CreateCommunityRecordFn(Protocol):
     """Callable to create a record in a community."""
 
-    def __call__(  # noqa PLR0913
+    def __call__(
         self,
         identity: Identity,
         community_id: str,
@@ -30,7 +30,7 @@ class CreateCommunityRecordFn(Protocol):
         custom_workflow: str | None = ...,
         expand: bool = ...,
         **service_kwargs: Any,
-    ) -> dict[str, Any]:  # type: ignore[reportReturnType]
+    ) -> dict[str, Any]:
         """Create a record in a community."""
 
 
@@ -42,7 +42,7 @@ def draft_with_community_factory(
 ) -> CreateCommunityRecordFn:
     """Call to instance draft in a community."""
 
-    def record(  # noqa PLR0913
+    def record(
         identity: Identity,
         community_id: str,
         model_schema: str | None = None,
@@ -76,7 +76,7 @@ def draft_with_community_factory(
             expand=expand,
             **service_kwargs,
         )
-        return draft.to_dict()  # type: ignore[no-any-return]
+        return draft.to_dict()
 
     return record
 
@@ -88,7 +88,7 @@ def published_record_with_community_factory(
 ) -> CreateCommunityRecordFn:
     """Call to instance published record in a community."""
 
-    def _published_record_with_community(  # noqa PLR0913
+    def _published_record_with_community(
         identity: Identity,
         community_id: str,
         model_schema: str | None = None,
@@ -119,6 +119,6 @@ def published_record_with_community_factory(
             **service_kwargs,
         )
         record = record_service.publish(system_identity, draft["id"], expand=expand)
-        return record.to_dict()  # type: ignore[no-any-return]
+        return record.to_dict()
 
     return _published_record_with_community

@@ -18,29 +18,29 @@ if TYPE_CHECKING:
 
 
 @pytest.fixture
-def resourcetypes_rt(app, db) -> VocabularyType:  # noqa
+def resourcetypes_rt(app, db) -> VocabularyType:
     existing = db.session.query(VocabularyType).filter_by(id="resourcetypes").first()
     if existing:
         return existing
-    vt = VocabularyType(id="resourcetypes", pid_type="v-rt")  # type: ignore[reportCallIssue]
+    vt = VocabularyType(id="resourcetypes", pid_type="v-rt")  # ty: ignore[unknown-argument]
     db.session.add(vt)
     db.session.commit()
     return vt
 
 
 @pytest.fixture
-def resourcetype_dataset(app, db, resourcetypes_rt) -> Vocabulary:  # noqa
+def resourcetype_dataset(app, db, resourcetypes_rt) -> Vocabulary:
     try:
         return cast(
             "Vocabulary",
             record_from_result(
                 current_service.read(
-                    system_identity,
-                    ("resourcetypes", "dataset"),  # type: ignore[reportArgumentType]
+                    system_identity,  # our typing issue
+                    ("resourcetypes", "dataset"),  # ty: ignore[invalid-argument-type]
                 )
             ),
         )
-    except:  # noqa E722
+    except:
         return cast(
             "Vocabulary",
             record_from_result(

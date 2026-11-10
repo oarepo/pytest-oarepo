@@ -29,7 +29,7 @@ can_comment_only_receiver = [
 class CreateRequestFn(Protocol):
     """Callable to create a request on a topic record."""
 
-    def __call__(  # noqa PLR0913
+    def __call__(
         self,
         identity: Identity,
         id_: str,
@@ -38,7 +38,7 @@ class CreateRequestFn(Protocol):
         additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
         **request_kwargs: Any,
-    ) -> RequestItem:  # type: ignore[reportReturnType]
+    ) -> RequestItem:
         """Create request of specific type on a specific record."""
 
 
@@ -53,14 +53,14 @@ class CreateRequestOnTopicFn(Protocol):
         additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
         **request_kwargs: Any,
-    ) -> RequestItem:  # type: ignore[reportReturnType]
+    ) -> RequestItem:
         """Create request of specific type on a specific record."""
 
 
 class SubmitRequestFn(Protocol):
     """Callable to create and submit a request on a topic record."""
 
-    def __call__(  # noqa PLR0913
+    def __call__(
         self,
         identity: Identity,
         topic_id: str,
@@ -68,7 +68,7 @@ class SubmitRequestFn(Protocol):
         create_additional_data: dict[str, Any] | None = ...,
         submit_additional_data: dict[str, Any] | None = ...,
         expand: bool = ...,
-    ) -> RequestItem:  # type: ignore[reportReturnType]
+    ) -> RequestItem:
         """Create and submit request of specific type on a specific record."""
 
 
@@ -77,11 +77,11 @@ def requests_service() -> RequestsService:
     """Return current requests service proxy."""
     from oarepo_requests.proxies import current_requests_service
 
-    return current_requests_service  # type: ignore [return-value]
+    return current_requests_service
 
 
 @pytest.fixture
-def requests_events_service():  # noqa: ANN201
+def requests_events_service():
     """Return current request events service proxy."""
     from invenio_requests.proxies import current_events_service
 
@@ -113,7 +113,7 @@ def create_request(
 ) -> CreateRequestFn:
     """Return base function for creating a request."""
 
-    def _create_request(  # noqa PLR0913
+    def _create_request(
         identity: Identity,
         id_: str,
         request_type: str,
@@ -139,7 +139,7 @@ def create_request(
         if request_type in request_type_additional_data:
             additional_data = always_merger.merge(additional_data, request_type_additional_data[request_type])
 
-        topic = getattr(topic_service, topic_read_method)(system_identity, id_)._obj  # noqa SLF001
+        topic = getattr(topic_service, topic_read_method)(system_identity, id_)._obj
         return requests_service.create(
             identity,
             data=additional_data,
@@ -231,7 +231,7 @@ def submit_request_on_draft(
 ) -> SubmitRequestFn:
     """Fixture for creating and submitting request on a draft in one call."""
 
-    def _submit_request(  # noqa PLR0913
+    def _submit_request(
         identity: Identity,
         topic_id: str,
         request_type: str,
@@ -270,7 +270,7 @@ def submit_request_on_record(
 ) -> SubmitRequestFn:
     """Fixture for creating and submitting request on a published record in one call."""
 
-    def _submit_request(  # noqa PLR0913
+    def _submit_request(
         identity: Identity,
         topic_id: str,
         request_type: str,

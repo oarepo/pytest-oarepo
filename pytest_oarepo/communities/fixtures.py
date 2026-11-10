@@ -35,7 +35,7 @@ class CommunityGetOrCreateFn(Protocol):
         community_dict: dict[str, Any] | None = ...,
         workflow: str | None = ...,
         allowed_workflows: list[str] | None = ...,
-    ) -> Community:  # type: ignore[reportReturnType]
+    ) -> Community:
         """Get or create community."""
 
 
@@ -47,7 +47,7 @@ class CommunityGetOrCreateWithoutWorkflowArgsFn(Protocol):
         community_owner: UserFixtureBase,
         slug: str | None = ...,
         community_dict: dict[str, Any] | None = ...,
-    ) -> Community:  # type: ignore[reportReturnType]
+    ) -> Community:
         """Get or create community."""
 
 
@@ -67,16 +67,16 @@ def minimal_community() -> dict[str, Any]:
 
 
 @pytest.fixture
-def init_communities_cf(app: Flask, cache: Any) -> None:  # noqa ARG001
+def init_communities_cf(app: Flask, cache: Any) -> None:
     result = app.test_cli_runner().invoke(create_communities_custom_field, [])
     if result.exit_code != 0:
         raise RuntimeError(f"Failed to initialize communities custom fields: {result.output}")
-    Community.index.refresh()  # type: ignore[reportAttributeAccessIssue]
+    Community.index.refresh()  # ty: ignore[unresolved-attribute]
 
 
 @pytest.fixture
 def community(
-    app: Flask,  # noqa ARG001
+    app: Flask,
     community_owner: UserFixtureBase,
     community_get_or_create_in_default_workflow: CommunityGetOrCreateWithoutWorkflowArgsFn,
 ) -> Community:
@@ -86,7 +86,7 @@ def community(
 
 @pytest.fixture
 def communities(
-    app: Flask,  # noqa ARG001
+    app: Flask,
     community_owner: UserFixtureBase,
     community_get_or_create_in_default_workflow: CommunityGetOrCreateWithoutWorkflowArgsFn,
 ) -> dict[str, Community]:
@@ -98,7 +98,7 @@ def communities(
 
 
 @pytest.fixture
-def community_owner(UserFixture, app: Flask, db: SQLAlchemy, password: str) -> UserFixtureBase:  # noqa N803
+def community_owner(UserFixture, app: Flask, db: SQLAlchemy, password: str) -> UserFixtureBase:
     """User fixture used as owner of the community fixture."""
     u = UserFixture(
         email="community_owner@inveniosoftware.org",
@@ -138,10 +138,10 @@ def community_get_or_create(minimal_community: dict[str, Any]) -> CommunityGetOr
                 community_owner.identity,
                 community_dict,
             )
-            c = c._obj  # noqa SLF001
-            Community.index.refresh()  # type: ignore[reportAttributeAccessIssue]
+            c = c._obj
+            Community.index.refresh()  # ty: ignore[unresolved-attribute]
             _index_users()
-            community_owner._identity = None  # noqa SLF001
+            community_owner._identity = None
 
         return cast("Community", c)
 
@@ -183,6 +183,6 @@ def invite() -> Callable[[UserFixtureBase, str, str], None]:
         }
         current_communities.service.members.add(system_identity, community_id, invitation_data)
         _index_users()
-        user_fixture._identity = None  # noqa SLF001
+        user_fixture._identity = None
 
     return _invite

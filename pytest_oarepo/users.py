@@ -33,14 +33,12 @@ def _create_user(user_fixture: UserFixtureBase, app: Flask, db: SQLAlchemy) -> N
         user_fixture.create(app, db)
     except IntegrityError:
         datastore = app.extensions["security"].datastore
-        user_fixture._user = datastore.get_user_by_email(  # noqa: SLF001
-            user_fixture.email
-        )
-        user_fixture._app = app  # noqa: SLF001
+        user_fixture._user = datastore.get_user_by_email(user_fixture.email)
+        user_fixture._app = app
 
 
 @pytest.fixture
-def users(app: Flask, db: SQLAlchemy, UserFixture: type[UserFixtureBase], password: str) -> list[UserFixtureBase]:  # noqa N803
+def users(app: Flask, db: SQLAlchemy, UserFixture: type[UserFixtureBase], password: str) -> list[UserFixtureBase]:
     """Predefined user fixtures."""
     user1 = UserFixture(
         email="user1@example.org",
@@ -124,7 +122,7 @@ def users(app: Flask, db: SQLAlchemy, UserFixture: type[UserFixtureBase], passwo
 def user_with_cs_locale(
     app: Flask,
     db: SQLAlchemy,
-    UserFixture: type[UserFixtureBase],  # noqa N803
+    UserFixture: type[UserFixtureBase],
     password: str,
 ) -> UserFixtureBase:
     """User with Czech locale."""
@@ -147,7 +145,7 @@ def user_with_cs_locale(
 
 
 @pytest.fixture
-def user_with_administration_rights(app, db, UserFixture, password):  # noqa N803
+def user_with_administration_rights(app, db, UserFixture, password):
     """Set administration rights to the first user and return it."""
     user = UserFixture(
         email="admin@example.org",

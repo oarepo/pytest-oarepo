@@ -1,0 +1,28 @@
+# The root .ruff.toml is regenerated from the oarepo-cli template on every lint run, so the
+# package-wide relaxations live here. Mirrors the template's tests/ per-file-ignores, plus N803 for
+# pytest-invenio's `UserFixture` fixture and E722 for the existing bare except in vocabularies.
+extend = "../.ruff.toml"
+
+[lint]
+ignore = [
+    "E402",
+    "S101",
+    "ANN001",
+    "ANN002",
+    "ANN202",
+    "ARG001",
+    "ARG002",
+    "ANN003",
+    "SLF001",
+    "ARG005",
+    "D103",
+    "ANN201",
+    "D100",
+    "INP",
+    "PLR",
+    "PLC",
+    "N803",
+]
+
+[lint.extend-per-file-ignores]
+"vocabularies/fixtures.py" = ["E722"]
