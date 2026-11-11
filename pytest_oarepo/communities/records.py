@@ -97,7 +97,7 @@ def published_record_with_community_factory(
     draft_with_community_submission_factory: CreateCommunityRecordFn,
     submit_review: SubmitReviewFn,
 ) -> CreateCommunityRecordFn:
-    """A record published by accepting its community-submission review."""
+    """Publish record by accepting its community-submission review."""
 
     def _create(
         identity: Identity,
