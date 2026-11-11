@@ -55,7 +55,7 @@ def add_user_in_role(db: SQLAlchemy) -> Callable[[UserFixtureBase, Role | str], 
                 role = current_groups_service.read(system_identity, role_or_role_name)._group.model.model_obj
             except PermissionDeniedError:  # missing group in db raises this
                 role = Role(name=role_or_role_name)
-                db.session.add(role_or_role_name)
+                db.session.add(role)
         else:
             role = role_or_role_name
         # TODO: UserFixtureBase is not typed
